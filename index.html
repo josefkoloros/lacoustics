@@ -2,13 +2,8 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>L-Acoustics Preset Helper</title>
-    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,12 +61,9 @@
             padding-bottom: 8px;
         }
         
-        /* Uspořádání do jednoho řádku */
+        /* Změněné rozvržení - vše plynule vedle sebe */
         .speaker-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px dashed #bce8f1;
             font-size: 1.05em;
         }
@@ -81,11 +73,9 @@
         .spk-name {
             font-weight: bold;
             color: #2c3e50;
-            width: 30%;
+            margin-right: 5px;
         }
         .spk-data {
-            width: 70%;
-            text-align: right;
             color: #34495e;
         }
         
@@ -149,12 +139,12 @@
         <h3>Pre-alignment Delay:</h3>
         
         <div class="speaker-row">
-            <span id="topName" class="spk-name">Top</span>
+            <span id="topName" class="spk-name">Top:</span>
             <span class="spk-data">Delay: <strong id="topDelay">-</strong> | Pol: <span id="topPol">-</span></span>
         </div>
 
         <div class="speaker-row">
-            <span id="subName" class="spk-name">Sub</span>
+            <span id="subName" class="spk-name">Sub:</span>
             <span class="spk-data">Delay: <strong id="subDelay">-</strong> | Pol: <span id="subPol">-</span></span>
         </div>
     </div>
@@ -168,35 +158,9 @@
     </div>
 </div>
 
+<script src="data.js?v=1"></script>
+
 <script>
-    // Integrovaná databáze zpoždění a polarity
-    const presetDatabase = {
-        // --- Kara II + SB18 ---
-        "kara2-sb18-standard": { topDelay: "2.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "kara2-sb18-c": { topDelay: "8.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "kara2-sb18-cx": { topDelay: "6.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        
-        // --- Kara II + KS21 ---
-        "kara2-ks21-standard": { topDelay: "0.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "kara2-ks21-c": { topDelay: "6.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "kara2-ks21-cx": { topDelay: "5.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-
-        // --- Kara II + KS28 ---
-        "kara2-ks28-standard": { topDelay: "0 ms", topPol: "+", subDelay: "5.0 ms", subPol: "+" },
-        "kara2-ks28-c": { topDelay: "0.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "kara2-ks28-cx": { topDelay: "4.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-
-        // --- A15 + KS21 ---
-        "a15-ks21-standard": { topDelay: "0 ms", topPol: "+", subDelay: "2.3 ms", subPol: "+" },
-        "a15-ks21-c": { topDelay: "9.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "a15-ks21-cx": { topDelay: "8.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-
-        // --- A10 + KS21 ---
-        "a10-ks21-standard": { topDelay: "0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "a10-ks21-c": { topDelay: "5.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
-        "a10-ks21-cx": { topDelay: "0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" }
-    };
-
     function findPreset() {
         const topSelect = document.getElementById('topSpeaker');
         const subSelect = document.getElementById('subSpeaker');
@@ -210,12 +174,14 @@
 
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
+            
+            // data se čtou z objektu presetDatabase (ze souboru data.js)
             const preset = presetDatabase[searchKey];
 
             if (preset) {
                 // Vyplnění názvů
-                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text;
-                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text;
+                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text + ":";
+                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text + ":";
 
                 // Vyplnění Delay
                 document.getElementById('topDelay').innerText = preset.topDelay;
