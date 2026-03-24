@@ -22,7 +22,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            max-width: 700px;
+            max-width: 750px;
             width: 100%;
         }
 
@@ -119,6 +119,17 @@
         .val-geo { color: #f39c12; }
         .val-final { color: #2ecc71; font-weight: bold; font-size: 1.15em; background-color: rgba(46, 204, 113, 0.1); padding: 4px 8px; border-radius: 4px; }
         
+        /* Styl pro nákres */
+        .diagram-container {
+            display: none;
+            justify-content: center;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8e9;
+            border-radius: 8px;
+        }
+
         .error-message { text-align: center; color: #e74c3c; background-color: #fdf2f2; border: 1px solid #fadbd8; font-weight: bold; padding: 12px; border-radius: 6px; display: none; margin-top: 10px; }
         .footer { margin-top: 30px; font-size: 0.8em; text-align: center; color: #95a5a6; }
 
@@ -134,7 +145,7 @@
 <body>
 
 <div class="container">
-    <h1>L-Acoustics Setup</h1>
+    <h1>L-Acoustics Setup & Calculator</h1>
     
     <div class="section-title">1. Výběr hardwaru</div>
     
@@ -176,8 +187,11 @@
 
     <div id="errorMessage" class="error-message">Tato kombinace není v manuálu definována.</div>
 
+    <div id="diagramContainer" class="diagram-container">
+        </div>
+
     <div id="measurementSection" style="display: none;">
-        <div class="section-title">3. Fyzické měření (Volitelné)</div>
+        <div class="section-title">3. Fyzické měření (Side view)</div>
         
         <div class="input-row" style="margin-bottom: 15px;">
             <div style="flex:1;">
@@ -243,7 +257,7 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=14"></script>
+<script src="data.js?v=15"></script>
 
 <script>
     const labels = {
@@ -294,6 +308,7 @@
         document.getElementById('errorMessage').style.display = 'none';
         document.getElementById('measurementSection').style.display = 'none';
         document.getElementById('calcWrapper').style.display = 'none';
+        document.getElementById('diagramContainer').style.display = 'none';
     }
 
     function updateSub1() { hideResults(); if(!val('topSpeaker')) { ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')})); }
@@ -306,7 +321,6 @@
         el.innerText = value; el.className = (value === "-") ? "pol-minus" : "pol-plus";
     }
 
-    // Uložené presety pro kalkulaci
     let currentPresetData = null;
 
     function showResults() {
@@ -325,11 +339,68 @@
                 
                 document.getElementById('measurementSection').style.display = 'block';
                 document.getElementById('calcWrapper').style.display = 'block';
+                
+                // NOVÉ: Nákres diagramu
+                drawDiagram();
+                
                 calculateTotal(); // Provede výpočet okamžitě
             } else {
                 document.getElementById('errorMessage').style.display = 'block';
             }
         }
+    }
+
+    // NOVÁ FUNKCE: Generuje side-view diagram sestavy
+    function drawDiagram() {
+        const top = val('topSpeaker');
+        const sub1 = val('sub1Speaker');
+        const sub2 = val('sub2Speaker');
+        const hasSub2 = sub2 !== 'none';
+
+        const container = document.getElementById('diagramContainer');
+        
+        // Základní SVG šablona
+        let svg = `<svg width="350" height="260" viewBox="0 0 350 260" style="background:white; border-radius:4px;">
+            <line x1="20" y1="230" x2="330" y2="230" stroke="#7f8c8d" stroke-width="2" />
+            
+            <circle cx="280" cy="200" r="10" stroke="#e74c3c" stroke-width="2" fill="none" />
+            <circle cx="280" cy="200" r="3" fill="#e74c3c" />
+            <text x="280" y="225" font-size="11" fill="#e74c3c" text-anchor="middle">Měřící osa</text>`;
+
+        // Výpočet pozic a jmen beden
+        let yCoord = 230; // Začínáme od země
+        const boxes = [];
+
+        // Sub 1
+        yCoord -= 50; // Výška subu 1
+        boxes.push({ name: labels[sub1], y: yCoord, height: 50, color: '#95a5a6' });
+
+        // Sub 2 (pokud existuje)
+        if (hasSub2) {
+            yCoord -= 50; // Výška subu 2
+            boxes.push({ name: labels[sub2], y: yCoord, height: 50, color: '#7f8c8d' });
+        }
+
+        // Top
+        yCoord -= 60; // Výška topu
+        boxes.push({ name: labels[top], y: yCoord, height: 60, color: '#34495e', isTop: true });
+
+        // Vykreslení beden a Conceptual Laser Lines
+        boxes.forEach(box => {
+            // Box
+            svg += `<rect x="50" y="${box.y}" width="100" height="${box.height}" fill="${box.color}" stroke="#2c3e50" stroke-width="1.5" rx="3" />
+                   <text x="100" y="${box.y + box.height/2 + 4}" font-size="12" fill="white" font-weight="bold" text-anchor="middle">${box.name}</text>`;
+            
+            // CONCEPTUAL LASER MEASURING BEAM (conceptual, accurate alignment axis)
+            let axisY = box.y + box.height/2; // Měříme konceptuálně na střed bedny
+            svg += `<line x1="150" y1="${axisY}" x2="280" y2="200" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="5,3" />
+                   <text x="215" y="${axisY - (axisY-200)/2 - 5}" font-size="10" fill="#f39c12" text-anchor="middle">${box.isTop ? 'distTop' : (box === boxes[0] ? 'distSub1' : 'distSub2')} (conceptual axis)</text>`;
+        });
+
+        svg += `</svg>`;
+        
+        container.innerHTML = svg;
+        container.style.display = 'flex';
     }
 
     // HLAVNÍ VÝPOČETNÍ JÁDRO
@@ -344,66 +415,42 @@
         document.getElementById('calcRowSub2').style.display = hasSub2 ? 'table-row' : 'none';
         if(hasSub2) document.getElementById('calcNameSub2').innerText = labels[val('sub2Speaker')];
 
-        // Rychlost zvuku (m/s) závislá na teplotě: c = 331.3 + (0.606 * T)
+        // Rychlost zvuku (m/s) závislá na teplotě
         const temp = parseFloat(val('temp')) || 20;
         const c = 331.3 + (0.606 * temp);
 
         // Fyzické vzdálenosti
-        const dTopStr = val('distTop');
-        const dSub1Str = val('distSub1');
-        const dSub2Str = val('distSub2');
+        const dTopStr = val('distTop'), dSub1Str = val('distSub1'), dSub2Str = val('distSub2');
+        const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null, dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null, dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
 
-        const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null;
-        const dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null;
-        const dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
-
-        // Geometrické zpoždění (ms)
         let gTop = 0, gSub1 = 0, gSub2 = 0;
-
-        // Pokud uživatel zadal relevantní vzdálenosti
         let canCalc = (dTop !== null && dSub1 !== null);
         if(hasSub2 && dSub2 === null) canCalc = false;
 
         if (canCalc) {
-            // Najdeme nejvzdálenější bednu
             let maxD = Math.max(dTop, dSub1);
             if(hasSub2) maxD = Math.max(maxD, dSub2);
-
-            // Bližší bedny se musí zpozdit o čas, který zvuku trvá uletět chybějící vzdálenost
             gTop = ((maxD - dTop) / c) * 1000;
             gSub1 = ((maxD - dSub1) / c) * 1000;
             if(hasSub2) gSub2 = ((maxD - dSub2) / c) * 1000;
         }
 
-        // Extrakce zpoždění z databáze (z textu "2.5 ms" udělá číslo 2.5)
+        // Extrakce pre-alignment zpoždění
         const pTop = parseFloat(currentPresetData.topDelay) || 0;
         const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
         const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
 
-        // Finální součty
-        const fTop = pTop + gTop;
-        const fSub1 = pSub1 + gSub1;
-        const fSub2 = pSub2 + gSub2;
+        // Finální součty a UI zápis
+        const writeUI = (row, preset, geo, final, pol) => {
+            document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
+            document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
+            document.getElementById(`calcFinal${row}`).innerText = final.toFixed(1) + " ms";
+            applyPolarity(`calcPol${row}`, pol);
+        };
 
-        // Zápis do UI (Top)
-        document.getElementById('calcPresetTop').innerText = pTop.toFixed(1) + " ms";
-        document.getElementById('calcGeoTop').innerText = "+" + gTop.toFixed(1) + " ms";
-        document.getElementById('calcFinalTop').innerText = fTop.toFixed(1) + " ms";
-        applyPolarity('calcPolTop', currentPresetData.topPol);
-
-        // Zápis do UI (Sub 1)
-        document.getElementById('calcPresetSub1').innerText = pSub1.toFixed(1) + " ms";
-        document.getElementById('calcGeoSub1').innerText = "+" + gSub1.toFixed(1) + " ms";
-        document.getElementById('calcFinalSub1').innerText = fSub1.toFixed(1) + " ms";
-        applyPolarity('calcPolSub1', currentPresetData.sub1Pol);
-
-        // Zápis do UI (Sub 2)
-        if(hasSub2) {
-            document.getElementById('calcPresetSub2').innerText = pSub2.toFixed(1) + " ms";
-            document.getElementById('calcGeoSub2').innerText = "+" + gSub2.toFixed(1) + " ms";
-            document.getElementById('calcFinalSub2').innerText = fSub2.toFixed(1) + " ms";
-            applyPolarity('calcPolSub2', currentPresetData.sub2Pol);
-        }
+        writeUI('Top', pTop, gTop, pTop + gTop, currentPresetData.topPol);
+        writeUI('Sub1', pSub1, gSub1, pSub1 + gSub1, currentPresetData.sub1Pol);
+        if(hasSub2) writeUI('Sub2', pSub2, gSub2, pSub2 + gSub2, currentPresetData.sub2Pol);
     }
 </script>
 
