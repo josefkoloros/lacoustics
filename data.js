@@ -27,7 +27,7 @@ const presetDatabase = {
 
     // --- A15 + KS21 (pouze 60Hz v manuálu) ---
     "a15-ks21-60": { topDelay: "0 ms", topPol: "+", subDelay: "2.3 ms", subPol: "+" },
-    "a15-ks21-60_c": { topDelay: "9.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+    "a15-ks21-60_c": { topDelay: "9.0 ms", topPol: "+", subDelay: "0 ms", subPol: "-" }, // Opraveno podle tvé kontroly manuálu
     "a15-ks21-60_cx": { topDelay: "8.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
 
     // --- A10 + KS21 (pouze 100Hz v manuálu) ---
