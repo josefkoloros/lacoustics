@@ -2,8 +2,13 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>L-Acoustics Preset Helper</title>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,6 +30,7 @@
             font-size: 1.5em;
             text-align: center;
             color: #2c3e50;
+            margin-top: 0;
         }
         .form-group {
             margin-bottom: 15px;
@@ -40,46 +46,62 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 1em;
+            background-color: #fff;
         }
+        
+        /* Box s výsledky */
         .result-box {
             margin-top: 20px;
             padding: 15px;
             background-color: #e8f4f8;
-            border-radius: 4px;
+            border-radius: 6px;
+            border-left: 5px solid #3498db;
             display: none;
         }
         .result-box h3 {
             margin-top: 0;
             margin-bottom: 15px;
             color: #2980b9;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
+            border-bottom: 1px solid #bce8f1;
+            padding-bottom: 8px;
         }
+        
+        /* Uspořádání do jednoho řádku */
         .speaker-row {
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 4px;
-            border-left: 4px solid #3498db;
-            margin-bottom: 10px;
-            font-size: 1em;
-            border: 1px solid #eee;
-            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #bce8f1;
+            font-size: 1.05em;
         }
-        .speaker-name {
+        .speaker-row:last-child {
+            border-bottom: none;
+        }
+        .spk-name {
             font-weight: bold;
             color: #2c3e50;
-            display: inline-block;
-            min-width: 70px;
+            width: 30%;
         }
-        .polarity-negative {
+        .spk-data {
+            width: 70%;
+            text-align: right;
+            color: #34495e;
+        }
+        
+        /* Zvýraznění záporné polarity */
+        .pol-minus {
             color: #e74c3c;
             font-weight: bold;
+            font-size: 1.1em;
         }
-        .kombinace-nenalezena {
+
+        .error-message {
             text-align: center;
             color: #e74c3c;
             font-weight: bold;
-            padding: 10px 0;
+            padding: 15px 0;
+            display: none;
         }
         .footer {
             margin-top: 20px;
@@ -98,9 +120,9 @@
         <label for="topSpeaker">Top reprobedna:</label>
         <select id="topSpeaker" onchange="findPreset()">
             <option value="">-- Vyber Top --</option>
-            <option value="KARA II">Kara II</option>
-            <option value="A15">A15</option>
-            <option value="A10">A10</option>
+            <option value="kara2">Kara II</option>
+            <option value="a15">A15</option>
+            <option value="a10">A10</option>
         </select>
     </div>
 
@@ -108,9 +130,9 @@
         <label for="subSpeaker">Subwoofer:</label>
         <select id="subSpeaker" onchange="findPreset()">
             <option value="">-- Vyber Sub --</option>
-            <option value="SB18">SB18</option>
-            <option value="KS21">KS21</option>
-            <option value="KS28">KS28</option>
+            <option value="sb18">SB18</option>
+            <option value="ks21">KS21</option>
+            <option value="ks28">KS28</option>
         </select>
     </div>
 
@@ -126,83 +148,106 @@
     <div id="resultBox" class="result-box">
         <h3>Pre-alignment Delay:</h3>
         
-        <p id="topResult" class="speaker-row">
-            <span id="topName" class="speaker-name">-</span> ➔ 
-            <strong>Delay:</strong> <span id="topDelayValue">-</span> | 
-            <strong>Pol:</strong> <span id="topPolarityValue">-</span>
-        </p>
+        <div class="speaker-row">
+            <span id="topName" class="spk-name">Top</span>
+            <span class="spk-data">Delay: <strong id="topDelay">-</strong> | Pol: <span id="topPol">-</span></span>
+        </div>
 
-        <p id="subResult" class="speaker-row">
-            <span id="subName" class="speaker-name">-</span> ➔ 
-            <strong>Delay:</strong> <span id="subDelayValue">-</span> | 
-            <strong>Pol:</strong> <span id="subPolarityValue">-</span>
-        </p>
+        <div class="speaker-row">
+            <span id="subName" class="spk-name">Sub</span>
+            <span class="spk-data">Delay: <strong id="subDelay">-</strong> | Pol: <span id="subPol">-</span></span>
+        </div>
+    </div>
 
-        <p id="noPresetMessage" class="kombinace-nenalezena" style="display:none;">
-            Kombinace není v manuálu.
-        </p>
+    <div id="errorMessage" class="error-message">
+        Tato kombinace není v manuálu definována.
     </div>
 
     <div class="footer">
-        Zdroj dat: L-Acoustics Preset Guide version 28.0 (Jan 2026)
+        Zdroj dat: Preset Guide v28.0
     </div>
 </div>
 
-<script src="data.js?verze=28.0"></script>
-
 <script>
+    // Integrovaná databáze zpoždění a polarity
+    const presetDatabase = {
+        // --- Kara II + SB18 ---
+        "kara2-sb18-standard": { topDelay: "2.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "kara2-sb18-c": { topDelay: "8.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "kara2-sb18-cx": { topDelay: "6.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        
+        // --- Kara II + KS21 ---
+        "kara2-ks21-standard": { topDelay: "0.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "kara2-ks21-c": { topDelay: "6.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "kara2-ks21-cx": { topDelay: "5.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+
+        // --- Kara II + KS28 ---
+        "kara2-ks28-standard": { topDelay: "0 ms", topPol: "+", subDelay: "5.0 ms", subPol: "+" },
+        "kara2-ks28-c": { topDelay: "0.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "kara2-ks28-cx": { topDelay: "4.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+
+        // --- A15 + KS21 ---
+        "a15-ks21-standard": { topDelay: "0 ms", topPol: "+", subDelay: "2.3 ms", subPol: "+" },
+        "a15-ks21-c": { topDelay: "9.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "a15-ks21-cx": { topDelay: "8.0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+
+        // --- A10 + KS21 ---
+        "a10-ks21-standard": { topDelay: "0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "a10-ks21-c": { topDelay: "5.5 ms", topPol: "+", subDelay: "0 ms", subPol: "+" },
+        "a10-ks21-cx": { topDelay: "0 ms", topPol: "+", subDelay: "0 ms", subPol: "+" }
+    };
+
     function findPreset() {
         const topSelect = document.getElementById('topSpeaker');
         const subSelect = document.getElementById('subSpeaker');
         const mode = document.getElementById('subMode').value;
-        const resultBox = document.getElementById('resultBox');
         
         const top = topSelect.value;
         const sub = subSelect.value;
         
+        const resultBox = document.getElementById('resultBox');
+        const errorMessage = document.getElementById('errorMessage');
+
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
-            
-            // presetDatabase se načte ze souboru data.js
             const preset = presetDatabase[searchKey];
 
-            document.getElementById('noPresetMessage').style.display = 'none';
-            document.getElementById('topResult').style.display = 'block';
-            document.getElementById('subResult').style.display = 'block';
-
             if (preset) {
+                // Vyplnění názvů
                 document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text;
                 document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text;
 
-                const topPolEl = document.getElementById('topPolarityValue');
-                const subPolEl = document.getElementById('subPolarityValue');
+                // Vyplnění Delay
+                document.getElementById('topDelay').innerText = preset.topDelay;
+                document.getElementById('subDelay').innerText = preset.subDelay;
 
-                document.getElementById('topDelayValue').innerText = preset.topDelay;
-                topPolEl.innerText = preset.topPolarity;
-                document.getElementById('subDelayValue').innerText = preset.subDelay;
-                subPolEl.innerText = preset.subPolarity;
+                // Zpracování polarity (Top)
+                const topPolEl = document.getElementById('topPol');
+                topPolEl.innerText = preset.topPol;
+                if (preset.topPol === "-") {
+                    topPolEl.className = "pol-minus";
+                } else {
+                    topPolEl.className = "";
+                }
 
-                // Červené zvýraznění pokud je polarita mínus
-                if (preset.topPolarity === "-") {
-                    topPolEl.classList.add('polarity-negative');
+                // Zpracování polarity (Sub)
+                const subPolEl = document.getElementById('subPol');
+                subPolEl.innerText = preset.subPol;
+                if (preset.subPol === "-") {
+                    subPolEl.className = "pol-minus";
                 } else {
-                    topPolEl.classList.remove('polarity-negative');
+                    subPolEl.className = "";
                 }
-                
-                if (preset.subPolarity === "-") {
-                    subPolEl.classList.add('polarity-negative');
-                } else {
-                    subPolEl.classList.remove('polarity-negative');
-                }
-                
+
+                errorMessage.style.display = 'none';
+                resultBox.style.display = 'block';
             } else {
-                document.getElementById('topResult').style.display = 'none';
-                document.getElementById('subResult').style.display = 'none';
-                document.getElementById('noPresetMessage').style.display = 'block';
+                resultBox.style.display = 'none';
+                errorMessage.style.display = 'block';
             }
-            resultBox.style.display = 'block';
         } else {
             resultBox.style.display = 'none';
+            errorMessage.style.display = 'none';
         }
     }
 </script>
