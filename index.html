@@ -55,7 +55,6 @@
             border-bottom: 2px solid #3498db;
             padding-bottom: 5px;
         }
-        /* Nový styl pro absolutně jistý jeden řádek */
         .speaker-row {
             background-color: #fff;
             padding: 10px;
@@ -63,9 +62,8 @@
             border-left: 4px solid #3498db;
             margin-bottom: 10px;
             font-size: 1em;
-            border-top: 1px solid #eee;
-            border-right: 1px solid #eee;
-            border-bottom: 1px solid #eee;
+            border: 1px solid #eee;
+            border-left: 4px solid #3498db;
         }
         .speaker-name {
             font-weight: bold;
@@ -150,34 +148,9 @@
     </div>
 </div>
 
+<script src="data.js"></script>
+
 <script>
-    const presetDatabase = {
-        // --- Kara II + SB18 ---
-        "KARA II-SB18-standard": { topDelay: "2.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "KARA II-SB18-c": { topDelay: "8 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "KARA II-SB18-cx": { topDelay: "6.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        
-        // --- Kara II + KS21 ---
-        "KARA II-KS21-standard": { topDelay: "0.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "KARA II-KS21-c": { topDelay: "6 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "KARA II-KS21-cx": { topDelay: "5.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-
-        // --- Kara II + KS28 ---
-        "KARA II-KS28-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "5 ms", subPolarity: "+" },
-        "KARA II-KS28-c": { topDelay: "0.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "KARA II-KS28-cx": { topDelay: "4.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-
-        // --- A15 + KS21 ---
-        "A15-KS21-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "2.3 ms", subPolarity: "+" },
-        "A15-KS21-c": { topDelay: "9 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "A15-KS21-cx": { topDelay: "8 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-
-        // --- A10 + KS21 ---
-        "A10-KS21-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "A10-KS21-c": { topDelay: "5.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
-        "A10-KS21-cx": { topDelay: "0 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" }
-    };
-
     function findPreset() {
         const topSelect = document.getElementById('topSpeaker');
         const subSelect = document.getElementById('subSpeaker');
@@ -189,6 +162,8 @@
         
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
+            
+            // presetDatabase se načte ze souboru data.js
             const preset = presetDatabase[searchKey];
 
             document.getElementById('noPresetMessage').style.display = 'none';
@@ -207,7 +182,7 @@
                 document.getElementById('subDelayValue').innerText = preset.subDelay;
                 subPolEl.innerText = preset.subPolarity;
 
-                // Logika pro červené zvýraznění záporné polarity
+                // Červené zvýraznění pokud je polarita mínus
                 if (preset.topPolarity === "-") {
                     topPolEl.classList.add('polarity-negative');
                 } else {
