@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-Acoustics Setup & Calculator</title>
     <style>
-       html, body {
+        * { box-sizing: border-box; }
+
+        /* OPRAVA ODOO: Kompletně měníme přístup k centrování a délce */
+        html, body {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -16,7 +19,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f6f8;
             color: #2c3e50;
-            /* TADY JE ZMĚNA: Zrušili jsme flex a vnutili auto scroll */
+            /* TADY JE ZMĚNA:display block */
             display: block; 
             overflow-y: auto; 
             padding: 20px;
@@ -145,6 +148,7 @@
         }
         .invert-label:hover { color: #ecf0f1; }
 
+        /* TADY JE ZMĚNA: Vystředění diagramu a plynulý přesun */
         .diagram-container {
             display: none;
             justify-content: center;
@@ -154,6 +158,14 @@
             border: 1px solid #e2e8e9;
             border-radius: 8px;
             overflow: hidden;
+            width: 100%;
+        }
+
+        svg {
+            max-width: 100%; 
+            height: auto; 
+            display: block; 
+            margin: 0 auto; 
         }
 
         svg rect, svg text, svg line {
@@ -163,6 +175,7 @@
         .error-message { text-align: center; color: #e74c3c; background-color: #fdf2f2; border: 1px solid #fadbd8; font-weight: bold; padding: 12px; border-radius: 6px; display: none; margin-top: 10px; }
         .footer { margin-top: 30px; font-size: 0.8em; text-align: center; color: #95a5a6; }
 
+        /* Media queries pro mobil */
         @media (max-width: 550px) {
             .input-row { flex-wrap: wrap; }
             select, input[type="number"] { flex: 1 1 100%; }
@@ -170,6 +183,13 @@
             .calc-table th, .calc-table td { font-size: 0.85em; padding: 8px 2px; }
             .val-final { font-size: 1em; }
             .invert-label { font-size: 0.65em; }
+            
+            /* TADY JE ZMĚNA: Zvětšíme diagram, aby byl na mobilu čitelný */
+            .diagram-container { padding: 5px; }
+            svg {
+                width: 100%;
+                viewBox: 0 0 450 260; 
+            }
         }
     </style>
 </head>
@@ -218,7 +238,8 @@
 
     <div id="errorMessage" class="error-message">Tato kombinace není v manuálu definována.</div>
 
-    <div id="diagramContainer" class="diagram-container"></div>
+    <div id="diagramContainer" class="diagram-container">
+        </div>
 
     <div id="measurementSection" style="display: none;">
         <div class="section-title">3. Fyzické měření (Laser)</div>
@@ -302,19 +323,21 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=20"></script>
+<script src="data.js?v=21"></script>
 
 <script>
     const labels = {
-        "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs_wifo": "ARCS W/F", "arcs2": "ARCS II", "arcs": "ARCS", "x12": "X12",
+        "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs_wifo": "ARCS Wide/Focus", "arcs2": "ARCS II", "arcs": "ARCS (Legacy)", "x12": "X12",
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
         "none": "-- Bez 2. subu --",
         "60": "[60] Standard", "100": "[100] Standard",
-        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
-        "60_cx": "[60_Cx] Cardioid Cx", "100_cx": "[100_Cx] Cardioid Cx"
+        "60_c": "[60] Cardioid C", "100_c": "[100] Cardioid C",
+        "60_cx": "[60] Cardioid Cx", "100_cx": "[100] Cardioid Cx"
     };
 
-    window.onload = function() { populateDropdown('topSpeaker', getAvailable(0, {})); };
+    window.onload = function() {
+        populateDropdown('topSpeaker', getAvailable(0, {}));
+    };
 
     function val(id) { return document.getElementById(id).value; }
 
@@ -324,7 +347,10 @@
             const parts = key.split('-');
             let match = true;
             for (const idx in conditions) {
-                if (conditions[idx] && parts[idx] !== conditions[idx]) { match = false; break; }
+                if (conditions[idx] && parts[idx] !== conditions[idx]) {
+                    match = false;
+                    break;
+                }
             }
             if (match) options.add(parts[targetIndex]);
         });
@@ -335,11 +361,18 @@
         const select = document.getElementById(id);
         select.innerHTML = '<option value="">-- Vyber --</option>';
         select.disabled = optionsArray.length === 0;
+
         optionsArray.forEach(val => {
             const option = document.createElement('option');
-            option.value = val; option.text = labels[val] || val; select.appendChild(option);
+            option.value = val;
+            option.text = labels[val] || val;
+            select.appendChild(option);
         });
-        if(optionsArray.length === 1) { select.value = optionsArray[0]; select.dispatchEvent(new Event('change')); }
+
+        if(optionsArray.length === 1) {
+            select.value = optionsArray[0];
+            select.dispatchEvent(new Event('change')); 
+        }
     }
 
     function hideResults() {
@@ -352,14 +385,51 @@
         document.getElementById('diagramContainer').style.display = 'none';
     }
 
-    function updateSub1() { hideResults(); if(!val('topSpeaker')) { ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')})); }
-    function updateSub2() { hideResults(); if(!val('sub1Speaker')) { ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')})); }
-    function updateSub1Mode() { hideResults(); if(!val('sub2Speaker')) { ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } document.getElementById('sub2ModeGroup').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; document.getElementById('distSub2Group').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')})); }
-    function updateSub2Mode() { hideResults(); if(!val('sub1Mode')) { populateDropdown('sub2Mode', []); return; } populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')})); }
+    function updateSub1() {
+        hideResults();
+        if(!val('topSpeaker')) {
+            ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        }
+        populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')}));
+    }
+
+    function updateSub2() {
+        hideResults();
+        if(!val('sub1Speaker')) {
+            ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        }
+        populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')}));
+    }
+
+    function updateSub1Mode() {
+        hideResults();
+        if(!val('sub2Speaker')) {
+            ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        }
+        
+        if(val('sub2Speaker') === 'none') {
+            document.getElementById('sub2ModeGroup').style.display = 'none';
+            document.getElementById('distSub2Group').style.display = 'none';
+        } else {
+            document.getElementById('sub2ModeGroup').style.display = 'block';
+            document.getElementById('distSub2Group').style.display = 'block';
+        }
+
+        populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')}));
+    }
+
+    function updateSub2Mode() {
+        hideResults();
+        if(!val('sub1Mode')) {
+            populateDropdown('sub2Mode', []); return;
+        }
+        populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')}));
+    }
 
     function applyPolarity(elementId, value) {
         const el = document.getElementById(elementId);
-        el.innerText = value; el.className = (value === "-") ? "pol-minus" : "pol-plus";
+        el.innerText = value;
+        el.className = (value === "-") ? "pol-minus" : "pol-plus";
     }
 
     function getFreqOffset(modeStr) {
@@ -400,7 +470,11 @@
     }
 
     function drawDiagram(dTop, dSub1, dSub2) {
-        const top = val('topSpeaker'); const sub1 = val('sub1Speaker'); const sub2 = val('sub2Speaker'); const hasSub2 = sub2 !== 'none';
+        const top = val('topSpeaker');
+        const sub1 = val('sub1Speaker');
+        const sub2 = val('sub2Speaker');
+        const hasSub2 = sub2 !== 'none';
+
         const container = document.getElementById('diagramContainer');
         
         let shiftTop = 0, shiftSub1 = 0, shiftSub2 = 0;
@@ -410,29 +484,46 @@
         if (canCalc) {
             let maxD = Math.max(dTop, dSub1);
             if(hasSub2) maxD = Math.max(maxD, dSub2);
+
             const scale = 40; 
             shiftTop = Math.min((maxD - dTop) * scale, 200);
             shiftSub1 = Math.min((maxD - dSub1) * scale, 200);
             if(hasSub2) shiftSub2 = Math.min((maxD - dSub2) * scale, 200);
         }
         
+        // Založení SVG
         let svg = `<svg width="100%" height="260" viewBox="0 0 450 260" style="background:white; border-radius:4px;">
             <line x1="10" y1="230" x2="440" y2="230" stroke="#7f8c8d" stroke-width="2" />
+            
             <circle cx="410" cy="200" r="10" stroke="#e74c3c" stroke-width="2" fill="none" />
             <circle cx="410" cy="200" r="3" fill="#e74c3c" />
             <text x="410" y="225" font-size="11" fill="#e74c3c" text-anchor="middle">Mic</text>`;
 
+        // Výpočet Y pozic a jmen beden
         let yCoord = 230; 
         const boxes = [];
-        
-        if (hasSub2) { yCoord -= 50; boxes.push({ name: labels[sub2], label: "Sub 2", y: yCoord, height: 50, color: '#7f8c8d', shift: shiftSub2 }); }
-        yCoord -= 50; boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
-        yCoord -= 60; boxes.push({ name: labels[top], label: "Top", y: yCoord, height: 60, color: '#34495e', shift: shiftTop });
 
+        // Sub 2 (pokud existuje)
+        if (hasSub2) {
+            yCoord -= 50; 
+            boxes.push({ name: labels[sub2], label: "Sub 2", y: yCoord, height: 50, color: '#7f8c8d', shift: shiftSub2 });
+        }
+
+        // Sub 1
+        yCoord -= 50; 
+        boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
+
+        // Top
+        yCoord -= 60; 
+        boxes.push({ name: labels[top], label: "Top", y: yCoord, height: 60, color: '#34495e', shift: shiftTop });
+
+        // Vykreslení beden a Laser Lines
         boxes.forEach(box => {
             let currentX = 30 + box.shift;
+            
             svg += `<rect x="${currentX}" y="${box.y}" width="90" height="${box.height}" fill="${box.color}" stroke="#2c3e50" stroke-width="1.5" rx="3" />
                    <text x="${currentX + 45}" y="${box.y + box.height/2 + 4}" font-size="12" fill="white" font-weight="bold" text-anchor="middle">${box.name}</text>`;
+            
             let axisY = box.y + box.height/2; 
             svg += `<line x1="${currentX + 90}" y1="${axisY}" x2="400" y2="200" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="4,4" />
                    <text x="${currentX + 90 + (400 - (currentX + 90))/2}" y="${axisY - (axisY-200)/2 - 5}" font-size="10" fill="#d35400" text-anchor="middle">${box.label}</text>`;
@@ -482,7 +573,6 @@
         const invSub1 = document.getElementById('invSub1').checked;
         const invSub2 = hasSub2 ? document.getElementById('invSub2').checked : false;
 
-        // Pomocná funkce pro výpočet hrubého delaye před normalizací (odečtem do nuly)
         const getRawFinal = (preset, geo, modeStr, isInverted) => {
             let baseTotal = preset + geo;
             if (!isInverted) return { val: baseTotal, text: "" };
@@ -502,7 +592,6 @@
         const rawSub1 = getRawFinal(pSub1, gSub1, val('sub1Mode'), invSub1);
         const rawSub2 = hasSub2 ? getRawFinal(pSub2, gSub2, val('sub2Mode'), invSub2) : { val: Infinity, text: "" };
 
-        // --- NORMALIZACE (Stržení na nulu) ---
         let minDelay = Math.min(rawTop.val, rawSub1.val);
         if (hasSub2) minDelay = Math.min(minDelay, rawSub2.val);
 
@@ -525,22 +614,17 @@
         if(hasSub2) writeUI('Sub2', pSub2, gSub2, normSub2, rawSub2.text, invSub2, currentPresetData.sub2Pol);
     }
 </script>
+
 <script>
-    // CHYTRÝ RESIZE OBSERVER PRO ODOO IFRAME
-    // Automaticky sleduje změnu velikosti celé aplikace a hlásí ji do Odoo
     const resizeObserver = new ResizeObserver(() => {
-        // Změříme aktuální výšku celé stránky
         const currentHeight = document.body.scrollHeight;
-        
-        // Pošleme zprávu "nahoru" do rodičovského okna (Odoo)
         window.parent.postMessage({ 
             type: 'resize-iframe', 
             height: currentHeight 
         }, '*');
     });
-
-    // Spustíme sledování na elementu <body>
     resizeObserver.observe(document.body);
 </script>
+
 </body>
 </html>
