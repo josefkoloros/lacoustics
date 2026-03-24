@@ -177,14 +177,39 @@
 
         /* Media queries pro mobil */
         @media (max-width: 550px) {
+            /* Zrušení vnějších okrajů - aplikace bude od kraje ke kraji */
+            body { padding: 0; }
+            .container { 
+                padding: 15px 8px; 
+                border-radius: 0;
+                margin-bottom: 0;
+            }
+            
+            /* Formuláře a roletky */
             .input-row { flex-wrap: wrap; }
             select, input[type="number"] { flex: 1 1 100%; }
             .inline-result { flex: 1 1 100%; margin-top: 5px; }
-            .calc-table th, .calc-table td { font-size: 0.85em; padding: 8px 2px; }
-            .val-final { font-size: 1em; }
+            
+            /* Úprava černého boxu s výsledky - ještě menší okraje */
+            .calc-wrapper { 
+                padding: 15px 4px; 
+            }
+            
+            /* Zrušíme fixní šířku z minula, ať se to zase smrskne */
+            .calc-table { min-width: 100%; } 
+            
+            /* Extrémní úspora místa v tabulce */
+            .calc-table th, .calc-table td { 
+                font-size: 0.8em; 
+                padding: 8px 2px; /* Minimální mezery */
+            }
+            .val-final { font-size: 0.9em; padding: 2px 4px; }
+            
+            /* Zmenšení přepínače polarity */
+            .pol-col { gap: 4px; }
             .invert-label { font-size: 0.65em; }
             
-            /* TADY JE ZMĚNA: Zvětšíme diagram, aby byl na mobilu čitelný */
+            /* Diagram */
             .diagram-container { padding: 5px; }
             svg {
                 width: 100%;
@@ -274,9 +299,9 @@
                 <tr>
                     <th>Zdroj</th>
                     <th>Preset</th>
-                    <th>Geometrie</th>
-                    <th>Celkem (Delay)</th>
-                    <th>Polarita</th>
+                    <th>Geo</th>
+                    <th>Celkem</th>
+                    <th>Pol.</th>
                 </tr>
             </thead>
             <tbody>
