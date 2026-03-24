@@ -525,6 +525,22 @@
         if(hasSub2) writeUI('Sub2', pSub2, gSub2, normSub2, rawSub2.text, invSub2, currentPresetData.sub2Pol);
     }
 </script>
+<script>
+    // CHYTRÝ RESIZE OBSERVER PRO ODOO IFRAME
+    // Automaticky sleduje změnu velikosti celé aplikace a hlásí ji do Odoo
+    const resizeObserver = new ResizeObserver(() => {
+        // Změříme aktuální výšku celé stránky
+        const currentHeight = document.body.scrollHeight;
+        
+        // Pošleme zprávu "nahoru" do rodičovského okna (Odoo)
+        window.parent.postMessage({ 
+            type: 'resize-iframe', 
+            height: currentHeight 
+        }, '*');
+    });
 
+    // Spustíme sledování na elementu <body>
+    resizeObserver.observe(document.body);
+</script>
 </body>
 </html>
