@@ -22,7 +22,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
         }
 
@@ -48,18 +48,18 @@
         
         .input-row {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: stretch; 
         }
         
         select {
             flex: 1; 
-            min-width: 180px;
+            min-width: 120px;
             height: 44px;
-            padding: 0 12px;
+            padding: 0 10px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 1em;
+            font-size: 0.95em;
             background-color: #f8fafc;
             color: #2c3e50;
             cursor: pointer;
@@ -75,16 +75,28 @@
             align-items: center; 
             height: 44px; 
             background-color: #e8f4f8;
-            padding: 0 16px;
+            padding: 0 14px;
             border-radius: 6px;
             border-left: 5px solid #3498db;
-            font-size: 0.95em;
+            font-size: 0.9em;
             white-space: nowrap; 
-            flex: 0 0 185px; 
+            flex: 0 0 175px; 
         }
         
-        .pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
-        .pol-plus { font-weight: bold; font-size: 1.1em; color: #2c3e50; }
+        .pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.15em; }
+        .pol-plus { font-weight: bold; font-size: 1.15em; color: #2c3e50; }
+
+        .error-message {
+            text-align: center;
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            border: 1px solid #fadbd8;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            margin-top: 10px;
+        }
 
         .footer {
             margin-top: 30px;
@@ -93,9 +105,10 @@
             color: #95a5a6;
         }
 
-        @media (max-width: 480px) {
-            .input-row { flex-direction: column; gap: 10px; }
-            select, .inline-result { width: 100%; flex: auto; }
+        @media (max-width: 550px) {
+            .input-row { flex-wrap: wrap; }
+            select { flex: 1 1 45%; }
+            .inline-result { flex: 1 1 100%; margin-top: 5px; }
         }
     </style>
 </head>
@@ -117,7 +130,8 @@
     <div class="form-group">
         <label>Subwoofer 1:</label>
         <div class="input-row">
-            <select id="sub1Speaker" onchange="updateSub2()" disabled></select>
+            <select id="sub1Speaker" onchange="updateSub1Mode()" disabled></select>
+            <select id="sub1Mode" onchange="updateSub2()" disabled></select>
             <div id="sub1Result" class="inline-result">
                 Delay: &nbsp;<strong id="sub1Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub1Pol">-</span>
             </div>
@@ -127,46 +141,38 @@
     <div class="form-group">
         <label>Subwoofer 2:</label>
         <div class="input-row">
-            <select id="sub2Speaker" onchange="updateMode()" disabled></select>
+            <select id="sub2Speaker" onchange="updateSub2Mode()" disabled></select>
+            <select id="sub2Mode" onchange="showResults()" disabled></select>
             <div id="sub2Result" class="inline-result">
                 Delay: &nbsp;<strong id="sub2Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub2Pol">-</span>
             </div>
         </div>
     </div>
 
-    <div class="form-group">
-        <label>Režim sestavy:</label>
-        <select id="subMode" onchange="showResults()" disabled style="width: 100%;"></select>
+    <div id="errorMessage" class="error-message">
+        Tato kombinace není v manuálu definována.
     </div>
 
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=8"></script>
+<script src="data.js?v=11"></script>
 
 <script>
-    // Zde jsou PŘEKLADY. Vlevo je klíč z databáze, vpravo co se ukáže uživateli.
     const labels = {
-        "kara2": "Kara II", 
-        "a15": "A15", 
-        "a10": "A10",
-        "arcs_wifo": "ARCS Wide/Focus",
-        "arcs2": "ARCS II",
-        "arcs": "ARCS (Legacy)",
-        "x12": "X12",
+        "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs_wifo": "ARCS Wide/Focus", "arcs2": "ARCS II", "arcs": "ARCS (Legacy)", "x12": "X12",
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
-        "none": "-- Bez 2. subu --",
-        "60": "Standard (60 Hz)", "100": "Standard (100 Hz)",
-        "60_c": "Cardioid C (60 Hz)", "100_c": "Cardioid C (100 Hz)",
-        "60_cx": "Cardioid Cx (60 Hz)", "100_cx": "Cardioid Cx (100 Hz)",
-        "standard": "Standard (Sub1 100Hz / Sub2 60Hz)",
-        "c": "Cardioid C (Sub1 100Hz / Sub2 60Hz)",
-        "cx": "Cardioid Cx (Sub1 100Hz / Sub2 60Hz)"
+        "none": "-- Bez --",
+        "60": "[60] Standard", "100": "[100] Standard",
+        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
+        "60_cx": "[60_Cx] Cardioid", "100_cx": "[100_Cx] Cardioid"
     };
 
     window.onload = function() {
         populateDropdown('topSpeaker', getAvailableOptions(0, []));
     };
+
+    function val(id) { return document.getElementById(id).value; }
 
     function getAvailableOptions(index, filters) {
         const options = new Set();
@@ -202,38 +208,42 @@
         document.getElementById('topResult').style.display = 'none';
         document.getElementById('sub1Result').style.display = 'none';
         document.getElementById('sub2Result').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
     }
 
     function updateSub1() {
         hideResults();
-        const top = document.getElementById('topSpeaker').value;
-        if(!top) {
-            populateDropdown('sub1Speaker', []); populateDropdown('sub2Speaker', []); populateDropdown('subMode', []); return;
+        if(!val('topSpeaker')) {
+            ['sub1Speaker', 'sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
-        populateDropdown('sub1Speaker', getAvailableOptions(1, [top]));
+        populateDropdown('sub1Speaker', getAvailableOptions(1, [val('topSpeaker')]));
+        updateSub1Mode();
+    }
+
+    function updateSub1Mode() {
+        hideResults();
+        if(!val('sub1Speaker')) {
+            ['sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        }
+        populateDropdown('sub1Mode', getAvailableOptions(2, [val('topSpeaker'), val('sub1Speaker')]));
         updateSub2();
     }
 
     function updateSub2() {
         hideResults();
-        const top = document.getElementById('topSpeaker').value;
-        const sub1 = document.getElementById('sub1Speaker').value;
-        if(!sub1) {
-            populateDropdown('sub2Speaker', []); populateDropdown('subMode', []); return;
+        if(!val('sub1Mode')) {
+            ['sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
-        populateDropdown('sub2Speaker', getAvailableOptions(2, [top, sub1]));
-        updateMode();
+        populateDropdown('sub2Speaker', getAvailableOptions(3, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode')]));
+        updateSub2Mode();
     }
 
-    function updateMode() {
+    function updateSub2Mode() {
         hideResults();
-        const top = document.getElementById('topSpeaker').value;
-        const sub1 = document.getElementById('sub1Speaker').value;
-        const sub2 = document.getElementById('sub2Speaker').value;
-        if(!sub2) {
-            populateDropdown('subMode', []); return;
+        if(!val('sub2Speaker')) {
+            populateDropdown('sub2Mode', []); return;
         }
-        populateDropdown('subMode', getAvailableOptions(3, [top, sub1, sub2]));
+        populateDropdown('sub2Mode', getAvailableOptions(4, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode'), val('sub2Speaker')]));
         showResults();
     }
 
@@ -244,13 +254,10 @@
     }
 
     function showResults() {
-        const top = document.getElementById('topSpeaker').value;
-        const sub1 = document.getElementById('sub1Speaker').value;
-        const sub2 = document.getElementById('sub2Speaker').value;
-        const mode = document.getElementById('subMode').value;
+        const key = `${val('topSpeaker')}-${val('sub1Speaker')}-${val('sub1Mode')}-${val('sub2Speaker')}-${val('sub2Mode')}`;
         
-        if (top && sub1 && sub2 && mode) {
-            const preset = presetDatabase[`${top}-${sub1}-${sub2}-${mode}`];
+        if (val('topSpeaker') && val('sub1Speaker') && val('sub1Mode') && val('sub2Speaker') && val('sub2Mode')) {
+            const preset = presetDatabase[key];
             if (preset) {
                 document.getElementById('topDelay').innerText = preset.topDelay;
                 applyPolarity('topPol', preset.topPol);
@@ -260,11 +267,13 @@
                 applyPolarity('sub1Pol', preset.sub1Pol);
                 document.getElementById('sub1Result').style.display = 'flex';
 
-                if (sub2 !== 'none') {
+                if (val('sub2Speaker') !== 'none') {
                     document.getElementById('sub2Delay').innerText = preset.sub2Delay;
                     applyPolarity('sub2Pol', preset.sub2Pol);
                     document.getElementById('sub2Result').style.display = 'flex';
                 }
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
             }
         }
     }
