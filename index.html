@@ -2,8 +2,9 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L-Acoustics Preset Helper</title>
+    <title>L-Acoustics Setup</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,10 +16,10 @@
         }
         .container {
             background-color: #fff;
-            padding: 20px;
+            padding: 20px 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 450px;
+            max-width: 500px;
             width: 100%;
         }
         h1 {
@@ -26,17 +27,29 @@
             text-align: center;
             color: #2c3e50;
             margin-top: 0;
+            margin-bottom: 25px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #2c3e50;
         }
+        
+        /* Flexibilní řádek pro select a výsledek */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap; /* Zalomí se na malých displejích */
+        }
+        
         select {
-            width: 100%;
+            flex: 1; /* Zabere zbývající volné místo */
+            min-width: 160px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -44,36 +57,15 @@
             background-color: #fff;
         }
         
-        .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f4f8;
-            border-radius: 6px;
-            border-left: 5px solid #3498db;
+        /* Inline box s výsledky vedle selectu */
+        .inline-result {
             display: none;
-        }
-        .result-box h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #2980b9;
-            border-bottom: 1px solid #bce8f1;
-            padding-bottom: 8px;
-        }
-        
-        /* Úprava pro text striktně v jednom řádku */
-        .speaker-row {
-            background-color: #fff;
-            padding: 12px;
+            background-color: #e8f4f8;
+            padding: 9px 15px;
             border-radius: 4px;
             border-left: 4px solid #3498db;
-            margin-bottom: 10px;
-            font-size: 1.05em;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .spk-name {
-            font-weight: bold;
-            color: #2c3e50;
-            text-transform: uppercase;
+            font-size: 0.95em;
+            white-space: nowrap; /* Zabrání rozlomení textu uvnitř bubliny */
         }
         
         /* Zvýraznění záporné polarity */
@@ -85,17 +77,21 @@
         .pol-plus {
             font-weight: bold;
             font-size: 1.1em;
+            color: #2c3e50;
         }
 
         .error-message {
             text-align: center;
             color: #e74c3c;
             font-weight: bold;
-            padding: 15px 0;
+            padding: 15px;
             display: none;
+            background-color: #fceceb;
+            border-radius: 4px;
+            margin-top: 15px;
         }
         .footer {
-            margin-top: 20px;
+            margin-top: 25px;
             font-size: 0.8em;
             text-align: center;
             color: #7f8c8d;
@@ -109,47 +105,41 @@
     
     <div class="form-group">
         <label for="topSpeaker">Top reprobedna:</label>
-        <select id="topSpeaker" onchange="findPreset()">
-            <option value="">-- Vyber Top --</option>
-            <option value="kara2">Kara II</option>
-            <option value="a15">A15</option>
-            <option value="a10">A10</option>
-        </select>
+        <div class="input-row">
+            <select id="topSpeaker" onchange="findPreset()">
+                <option value="">-- Vyber Top --</option>
+                <option value="kara2">Kara II</option>
+                <option value="a15">A15</option>
+                <option value="a10">A10</option>
+            </select>
+            <div id="topResult" class="inline-result">
+                Delay: <strong id="topDelay">-</strong> &nbsp;|&nbsp; Pol: <span id="topPol">-</span>
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
         <label for="subSpeaker">Subwoofer:</label>
-        <select id="subSpeaker" onchange="findPreset()">
-            <option value="">-- Vyber Sub --</option>
-            <option value="sb18">SB18</option>
-            <option value="ks21">KS21</option>
-            <option value="ks28">KS28</option>
-        </select>
+        <div class="input-row">
+            <select id="subSpeaker" onchange="findPreset()">
+                <option value="">-- Vyber Sub --</option>
+                <option value="sb18">SB18</option>
+                <option value="ks21">KS21</option>
+                <option value="ks28">KS28</option>
+            </select>
+            <div id="subResult" class="inline-result">
+                Delay: <strong id="subDelay">-</strong> &nbsp;|&nbsp; Pol: <span id="subPol">-</span>
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
         <label for="subMode">Režim Subwooferu:</label>
-        <select id="subMode" onchange="findPreset()">
+        <select id="subMode" onchange="findPreset()" style="width: 100%;">
             <option value="standard">Standard</option>
             <option value="c">Cardioid (C)</option>
             <option value="cx">Cardioid (Cx)</option>
         </select>
-    </div>
-
-    <div id="resultBox" class="result-box">
-        <h3>Pre-alignment Delay:</h3>
-        
-        <div id="topResult" class="speaker-row">
-            <span id="topName" class="spk-name">-</span> &nbsp;&bull;&nbsp; 
-            Delay: <strong id="topDelay">-</strong> &nbsp;&bull;&nbsp; 
-            Polarita: <span id="topPol">-</span>
-        </div>
-
-        <div id="subResult" class="speaker-row">
-            <span id="subName" class="spk-name">-</span> &nbsp;&bull;&nbsp; 
-            Delay: <strong id="subDelay">-</strong> &nbsp;&bull;&nbsp; 
-            Polarita: <span id="subPol">-</span>
-        </div>
     </div>
 
     <div id="errorMessage" class="error-message">
@@ -161,7 +151,7 @@
     </div>
 </div>
 
-<script src="data.js?v=2"></script>
+<script src="data.js?v=3"></script>
 
 <script>
     function findPreset() {
@@ -172,20 +162,15 @@
         const top = topSelect.value;
         const sub = subSelect.value;
         
-        const resultBox = document.getElementById('resultBox');
         const errorMessage = document.getElementById('errorMessage');
+        const topResult = document.getElementById('topResult');
+        const subResult = document.getElementById('subResult');
 
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
-            
-            // data se čtou z objektu presetDatabase ze souboru data.js
             const preset = presetDatabase[searchKey];
 
             if (preset) {
-                // Vyplnění názvů
-                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text;
-                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text;
-
                 // Vyplnění Delay
                 document.getElementById('topDelay').innerText = preset.topDelay;
                 document.getElementById('subDelay').innerText = preset.subDelay;
@@ -209,17 +194,16 @@
                 }
 
                 errorMessage.style.display = 'none';
-                document.getElementById('topResult').style.display = 'block';
-                document.getElementById('subResult').style.display = 'block';
-                resultBox.style.display = 'block';
+                topResult.style.display = 'block';
+                subResult.style.display = 'block';
             } else {
-                document.getElementById('topResult').style.display = 'none';
-                document.getElementById('subResult').style.display = 'none';
-                resultBox.style.display = 'none';
+                topResult.style.display = 'none';
+                subResult.style.display = 'none';
                 errorMessage.style.display = 'block';
             }
         } else {
-            resultBox.style.display = 'none';
+            topResult.style.display = 'none';
+            subResult.style.display = 'none';
             errorMessage.style.display = 'none';
         }
     }
