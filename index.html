@@ -31,16 +31,28 @@
             text-align: center;
             color: #1a252f;
             margin-top: 0;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.1em;
+            color: #3498db;
+            border-bottom: 2px solid #e8f4f8;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             color: #34495e;
             font-size: 0.95em;
@@ -107,7 +119,7 @@
 
         @media (max-width: 550px) {
             .input-row { flex-wrap: wrap; }
-            select { flex: 1 1 45%; }
+            select { flex: 1 1 100%; }
             .inline-result { flex: 1 1 100%; margin-top: 5px; }
         }
     </style>
@@ -116,6 +128,8 @@
 
 <div class="container">
     <h1>L-Acoustics Setup</h1>
+    
+    <div class="section-title">1. Výběr hardwaru</div>
     
     <div class="form-group">
         <label>Top reprobedna:</label>
@@ -130,8 +144,7 @@
     <div class="form-group">
         <label>Subwoofer 1:</label>
         <div class="input-row">
-            <select id="sub1Speaker" onchange="updateSub1Mode()" disabled></select>
-            <select id="sub1Mode" onchange="updateSub2()" disabled></select>
+            <select id="sub1Speaker" onchange="updateSub2()" disabled></select>
             <div id="sub1Result" class="inline-result">
                 Delay: &nbsp;<strong id="sub1Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub1Pol">-</span>
             </div>
@@ -141,12 +154,23 @@
     <div class="form-group">
         <label>Subwoofer 2:</label>
         <div class="input-row">
-            <select id="sub2Speaker" onchange="updateSub2Mode()" disabled></select>
-            <select id="sub2Mode" onchange="showResults()" disabled></select>
+            <select id="sub2Speaker" onchange="updateSub1Mode()" disabled></select>
             <div id="sub2Result" class="inline-result">
                 Delay: &nbsp;<strong id="sub2Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub2Pol">-</span>
             </div>
         </div>
+    </div>
+
+    <div class="section-title">2. Nastavení režimů (Preset)</div>
+
+    <div class="form-group">
+        <label>Režim Subwooferu 1:</label>
+        <select id="sub1Mode" onchange="updateSub2Mode()" disabled style="width: 100%;"></select>
+    </div>
+
+    <div class="form-group" id="sub2ModeGroup">
+        <label>Režim Subwooferu 2:</label>
+        <select id="sub2Mode" onchange="showResults()" disabled style="width: 100%;"></select>
     </div>
 
     <div id="errorMessage" class="error-message">
@@ -156,33 +180,37 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=11"></script>
+<script src="data.js?v=13"></script>
 
 <script>
     const labels = {
         "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs_wifo": "ARCS Wide/Focus", "arcs2": "ARCS II", "arcs": "ARCS (Legacy)", "x12": "X12",
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
-        "none": "-- Bez --",
+        "none": "-- Bez 2. subu --",
         "60": "[60] Standard", "100": "[100] Standard",
-        "60_c": "[60] Cardioid", "100_c": "[100] Cardioid",
-        "60_cx": "[60] Cardioid Cx", "100_cx": "[100] Cardioid Cx"
+        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
+        "60_cx": "[60_Cx] Cardioid Cx", "100_cx": "[100_Cx] Cardioid Cx"
     };
 
     window.onload = function() {
-        populateDropdown('topSpeaker', getAvailableOptions(0, []));
+        populateDropdown('topSpeaker', getAvailable(0, {}));
     };
 
     function val(id) { return document.getElementById(id).value; }
 
-    function getAvailableOptions(index, filters) {
+    // CHYTRÁ FUNKCE: Filtruje možnosti v datech podle přesně definovaných podmínek
+    function getAvailable(targetIndex, conditions) {
         const options = new Set();
         Object.keys(presetDatabase).forEach(key => {
             const parts = key.split('-');
             let match = true;
-            for(let i=0; i<filters.length; i++) {
-                if(filters[i] && parts[i] !== filters[i]) match = false;
+            for (const idx in conditions) {
+                if (conditions[idx] && parts[idx] !== conditions[idx]) {
+                    match = false;
+                    break;
+                }
             }
-            if(match) options.add(parts[index]);
+            if (match) options.add(parts[targetIndex]);
         });
         return Array.from(options);
     }
@@ -199,9 +227,6 @@
             select.appendChild(option);
         });
 
-        // KLÍČOVÁ OPRAVA ZAMRZÁNÍ:
-        // Pokud aplikace vybere jedinou možnost, musíme ručně spustit event,
-        // aby se kaskáda roletek plynule odemkla až do konce.
         if(optionsArray.length === 1) {
             select.value = optionsArray[0];
             select.dispatchEvent(new Event('change')); 
@@ -215,36 +240,51 @@
         document.getElementById('errorMessage').style.display = 'none';
     }
 
+    // --- KROK 1: Po výběru TOPu nabídni SUB 1 ---
     function updateSub1() {
         hideResults();
         if(!val('topSpeaker')) {
-            ['sub1Speaker', 'sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+            ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
-        populateDropdown('sub1Speaker', getAvailableOptions(1, [val('topSpeaker')]));
+        populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')}));
     }
 
-    function updateSub1Mode() {
-        hideResults();
-        if(!val('sub1Speaker')) {
-            ['sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
-        }
-        populateDropdown('sub1Mode', getAvailableOptions(2, [val('topSpeaker'), val('sub1Speaker')]));
-    }
-
+    // --- KROK 2: Po výběru SUB 1 nabídni SUB 2 (ignoruje režimy) ---
     function updateSub2() {
         hideResults();
-        if(!val('sub1Mode')) {
-            ['sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        if(!val('sub1Speaker')) {
+            ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
-        populateDropdown('sub2Speaker', getAvailableOptions(3, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode')]));
+        // Vytahujeme index 3 (Sub 2) na základě indexu 0 (Top) a 1 (Sub 1)
+        populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')}));
     }
 
-    function updateSub2Mode() {
+    // --- KROK 3: Po výběru SUB 2 nabídni REŽIM 1 ---
+    function updateSub1Mode() {
         hideResults();
         if(!val('sub2Speaker')) {
+            ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
+        }
+        
+        // Estetika: Pokud není Sub 2, schováme pro něj roletku režimu
+        if(val('sub2Speaker') === 'none') {
+            document.getElementById('sub2ModeGroup').style.display = 'none';
+        } else {
+            document.getElementById('sub2ModeGroup').style.display = 'block';
+        }
+
+        // Vytahujeme index 2 (Režim 1) na základě Topu, Subu 1 a Subu 2
+        populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')}));
+    }
+
+    // --- KROK 4: Po výběru REŽIMU 1 nabídni REŽIM 2 ---
+    function updateSub2Mode() {
+        hideResults();
+        if(!val('sub1Mode')) {
             populateDropdown('sub2Mode', []); return;
         }
-        populateDropdown('sub2Mode', getAvailableOptions(4, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode'), val('sub2Speaker')]));
+        // Vytahujeme index 4 (Režim 2)
+        populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')}));
     }
 
     function applyPolarity(elementId, value) {
@@ -253,6 +293,7 @@
         el.className = (value === "-") ? "pol-minus" : "pol-plus";
     }
 
+    // --- KROK 5: Ukaž výsledky ---
     function showResults() {
         const key = `${val('topSpeaker')}-${val('sub1Speaker')}-${val('sub1Mode')}-${val('sub2Speaker')}-${val('sub2Mode')}`;
         
