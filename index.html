@@ -1,178 +1,96 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L-Acoustics Setup & Calculator</title>
-    <style>
-        * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L-Acoustics Setup & Calculator</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8fafc;
+    color: #2c3e50;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    margin: 0; /* Pro iframe lepší bez vnějšího marginu */
+}
+.container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    max-width: 750px;
+    width: 100%;
+}
+h1 { font-size: 1.8em; text-align: center; color: #1a252f; margin-top: 0; margin-bottom: 20px; }
+.section-title {
+    font-size: 1.05em; color: #3498db; border-bottom: 2px solid #e8f4f8;
+    padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;
+    font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 6px; font-weight: 600; color: #34495e; font-size: 0.95em; }
+.input-row { display: flex; gap: 10px; align-items: stretch; }
+select, input[type="number"] {
+    flex: 1; min-width: 120px; height: 44px; padding: 0 12px;
+    border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1em;
+    background-color: #f8fafc; color: #2c3e50; outline: none; transition: border-color 0.2s;
+}
+select { cursor: pointer; }
+select:focus, input[type="number"]:focus { border-color: #3498db; background-color: #ffffff; }
+select:disabled, input:disabled { background-color: #eef2f5; cursor: not-allowed; color: #95a5a6; border-color: #e2e8f0; }
+.inline-result {
+    display: none; align-items: center; height: 44px; background-color: #e8f4f8;
+    padding: 0 14px; border-radius: 6px; border-left: 5px solid #3498db;
+    font-size: 0.9em; white-space: nowrap; flex: 0 0 175px;
+}
+.pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.15em; }
+.pol-plus { font-weight: bold; font-size: 1.15em; color: #2c3e50; }
+.calc-wrapper {
+    display: none; background-color: #1a252f; border-radius: 8px;
+    padding: 20px; margin-top: 25px; color: #ffffff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    overflow-x: auto; /* OPRAVA: Povolí scrollování tabulky do boku na malém displeji */
+}
+.calc-wrapper h3 { margin-top: 0; color: #3498db; margin-bottom: 15px; font-size: 1.2em; text-align: center;}
+.calc-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 400px; /* Aby se tabulka nesmrskla moc */ }
+.calc-table th { color: #95a5a6; font-weight: normal; text-align: right; padding-bottom: 10px; border-bottom: 1px solid #34495e;}
+.calc-table th:first-child { text-align: left; }
+.calc-table td { padding: 12px 0; border-bottom: 1px solid #2c3e50; text-align: right; }
+.calc-table td:first-child { text-align: left; font-weight: bold; color: #ecf0f1; }
+.calc-table tr:last-child td { border-bottom: none; }
+.val-preset { color: #bdc3c7; }
+.val-geo { color: #f39c12; }
+.val-final { color: #2ecc71; font-weight: bold; font-size: 1.15em; background-color: rgba(46, 204, 113, 0.1); padding: 4px 8px; border-radius: 4px; }
+.pol-col { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.invert-label { font-size: 0.75em; color: #7f8c8d; font-weight: normal; display: flex; align-items: center; gap: 4px; margin-bottom: 0; cursor: pointer; transition: color 0.2s; }
+.invert-label:hover { color: #ecf0f1; }
+.diagram-container { display: none; justify-content: center; margin-top: 25px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+svg rect, svg text, svg line { transition: all 0.3s ease-out; }
+.error-message { text-align: center; color: #e74c3c; background-color: #fdf2f2; border: 1px solid #fadbd8; font-weight: bold; padding: 12px; border-radius: 6px; display: none; margin-top: 10px; }
+.footer { margin-top: 30px; font-size: 0.8em; text-align: center; color: #95a5a6; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
-            color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            max-width: 750px;
-            width: 100%;
-        }
-
-        h1 {
-            font-size: 1.8em;
-            text-align: center;
-            color: #1a252f;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-        
-        .section-title {
-            font-size: 1.05em;
-            color: #3498db;
-            border-bottom: 2px solid #e8f4f8;
-            padding-bottom: 5px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #34495e;
-            font-size: 0.95em;
-        }
-        
-        .input-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch; 
-        }
-        
-        select, input[type="number"] {
-            flex: 1; 
-            min-width: 120px;
-            height: 44px;
-            padding: 0 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 1em;
-            background-color: #f8fafc;
-            color: #2c3e50;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        
-        select { cursor: pointer; }
-        select:focus, input[type="number"]:focus { border-color: #3498db; background-color: #ffffff; }
-        select:disabled, input:disabled { background-color: #eef2f5; cursor: not-allowed; color: #95a5a6; border-color: #e2e8f0; }
-        
-        .inline-result {
-            display: none;
-            align-items: center; 
-            height: 44px; 
-            background-color: #e8f4f8;
-            padding: 0 14px;
-            border-radius: 6px;
-            border-left: 5px solid #3498db;
-            font-size: 0.9em;
-            white-space: nowrap; 
-            flex: 0 0 175px; 
-        }
-        
-        .pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.15em; }
-        .pol-plus { font-weight: bold; font-size: 1.15em; color: #2c3e50; }
-
-        .calc-wrapper {
-            display: none;
-            background-color: #1a252f;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 25px;
-            color: #ffffff;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-        .calc-wrapper h3 { margin-top: 0; color: #3498db; margin-bottom: 15px; font-size: 1.2em; text-align: center;}
-        
-        .calc-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
-        .calc-table th { color: #95a5a6; font-weight: normal; text-align: right; padding-bottom: 10px; border-bottom: 1px solid #34495e;}
-        .calc-table th:first-child { text-align: left; }
-        .calc-table td { padding: 12px 0; border-bottom: 1px solid #2c3e50; text-align: right; }
-        .calc-table td:first-child { text-align: left; font-weight: bold; color: #ecf0f1; }
-        .calc-table tr:last-child td { border-bottom: none; }
-        
-        .val-preset { color: #bdc3c7; }
-        .val-geo { color: #f39c12; }
-        .val-final { color: #2ecc71; font-weight: bold; font-size: 1.15em; background-color: rgba(46, 204, 113, 0.1); padding: 4px 8px; border-radius: 4px; }
-        
-        /* Flex pro sloupec s polaritou a zatržítkem */
-        .pol-col {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-        .invert-label {
-            font-size: 0.75em;
-            color: #7f8c8d;
-            font-weight: normal;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 0;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .invert-label:hover { color: #ecf0f1; }
-
-        .diagram-container {
-            display: none;
-            justify-content: center;
-            margin-top: 25px;
-            padding: 15px;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8e9;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        svg rect, svg text, svg line {
-            transition: all 0.3s ease-out;
-        }
-
-        .error-message { text-align: center; color: #e74c3c; background-color: #fdf2f2; border: 1px solid #fadbd8; font-weight: bold; padding: 12px; border-radius: 6px; display: none; margin-top: 10px; }
-        .footer { margin-top: 30px; font-size: 0.8em; text-align: center; color: #95a5a6; }
-
-        @media (max-width: 550px) {
-            .input-row { flex-wrap: wrap; }
-            select, input[type="number"] { flex: 1 1 100%; }
-            .inline-result { flex: 1 1 100%; margin-top: 5px; }
-            .calc-table th, .calc-table td { font-size: 0.85em; padding: 8px 2px; }
-            .val-final { font-size: 1em; }
-            .invert-label { font-size: 0.65em; }
-        }
-    </style>
+@media (max-width: 550px) {
+    body { padding: 10px; }
+    .container { padding: 15px; }
+    .calc-wrapper { padding: 10px; } /* Menší okraje na mobilu pro tmavý blok */
+    .input-row { flex-wrap: wrap; }
+    select, input[type="number"] { flex: 1 1 100%; }
+    .inline-result { flex: 1 1 100%; margin-top: 5px; }
+    .calc-table th, .calc-table td { font-size: 0.85em; padding: 8px 2px; }
+    .invert-label { font-size: 0.65em; }
+    .val-final { font-size: 1em; }
+}
+</style>
 </head>
 <body>
 
 <div class="container">
     <h1>L-Acoustics Setup & Calculator</h1>
-    
+
     <div class="section-title">1. Výběr hardwaru</div>
-    
     <div class="form-group">
         <label>Top reprobedna:</label>
         <div class="input-row">
@@ -180,7 +98,6 @@
             <div id="topResult" class="inline-result">Pre-align: <strong id="topDelay">-</strong> | <span id="topPol">-</span></div>
         </div>
     </div>
-
     <div class="form-group">
         <label>Subwoofer 1:</label>
         <div class="input-row">
@@ -188,7 +105,6 @@
             <div id="sub1Result" class="inline-result">Pre-align: <strong id="sub1Delay">-</strong> | <span id="sub1Pol">-</span></div>
         </div>
     </div>
-
     <div class="form-group">
         <label>Subwoofer 2:</label>
         <div class="input-row">
@@ -198,24 +114,20 @@
     </div>
 
     <div class="section-title">2. Nastavení presetů</div>
-
     <div class="form-group">
         <label>Režim Subwoofer 1:</label>
         <select id="sub1Mode" onchange="updateSub2Mode()" disabled style="width: 100%;"></select>
     </div>
-
     <div class="form-group" id="sub2ModeGroup">
         <label>Režim Subwoofer 2:</label>
         <select id="sub2Mode" onchange="showResults()" disabled style="width: 100%;"></select>
     </div>
 
     <div id="errorMessage" class="error-message">Tato kombinace není v manuálu definována.</div>
-
     <div id="diagramContainer" class="diagram-container"></div>
 
     <div id="measurementSection" style="display: none;">
         <div class="section-title">3. Fyzické měření (Laser)</div>
-        
         <div class="input-row" style="margin-bottom: 15px;">
             <div style="flex:1;">
                 <label>Teplota vzduchu (°C):</label>
@@ -226,7 +138,6 @@
                 <input type="number" id="distTop" placeholder="např. 15.2" oninput="calculateTotal()" step="0.01">
             </div>
         </div>
-
         <div class="input-row">
             <div style="flex:1;">
                 <label>Vzdálenost Sub 1 (m):</label>
@@ -236,6 +147,9 @@
                 <label>Vzdálenost Sub 2 (m):</label>
                 <input type="number" id="distSub2" placeholder="např. 14.5" oninput="calculateTotal()" step="0.01">
             </div>
+        </div>
+        <div style="font-size: 0.85em; color: #7f8c8d; margin-top: 15px; text-align: center; background: #f8fafc; padding: 10px; border-radius: 6px;">
+            💡 <strong>Tip:</strong> Otočení polarity u 60 Hz = teoretický ekvivalent fázového posunu cca 8.3 ms.
         </div>
     </div>
 
@@ -295,199 +209,235 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=18"></script>
-
+<script src="data.js?v=19"></script>
 <script>
-    const labels = {
-        "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs_wifo": "ARCS W/F", "arcs2": "ARCS II", "arcs": "ARCS", "x12": "X12",
-        "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
-        "none": "-- Bez 2. subu --",
-        "60": "[60] Standard", "100": "[100] Standard",
-        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
-        "60_cx": "[60_Cx] Cardioid Cx", "100_cx": "[100_Cx] Cardioid Cx"
+const labels = {
+    "kara2": "Kara II", "a15": "A15", "a10": "A10", "arcs wifo": "ARCS W/F", "arcs2": "ARCS II", "arcs": "ARCS",
+    "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28", "x12": "X12",
+    "none": "-- Bez 2. subu --",
+    "60": "[60] Standard", "100": "[100] Standard",
+    "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
+    "60_cx": "[60_Cx] Cardioid Cx", "100_cx": "[100_Cx] Cardioid Cx"
+};
+
+// Odesílání výšky aplikace do Odoo pro plynulé nativní scrollování
+function notifyParentHeight() {
+    if (window.parent !== window) {
+        // Počkáme chvilku, než se UI překreslí, a pak pošleme reálnou výšku body
+        setTimeout(() => {
+            const height = document.documentElement.scrollHeight;
+            window.parent.postMessage({ type: 'resize-iframe', height: height }, '*');
+        }, 50);
+    }
+}
+
+window.onload = function() { 
+    populateDropdown('topSpeaker', getAvailable(0, {})); 
+    notifyParentHeight();
+};
+
+function val(id) { return document.getElementById(id).value; }
+
+function getAvailable(targetIndex, conditions) {
+    const options = new Set();
+    Object.keys(presetDatabase).forEach(key => {
+        const parts = key.split('-');
+        let match = true;
+        for (const idx in conditions) {
+            if (conditions[idx] && parts[idx] !== conditions[idx]) { match = false; break; }
+        }
+        if (match) options.add(parts[targetIndex]);
+    });
+    return Array.from(options);
+}
+
+function populateDropdown(id, optionsArray) {
+    const select = document.getElementById(id);
+    select.innerHTML = '<option value="">-- Vyber --</option>';
+    select.disabled = optionsArray.length === 0;
+    optionsArray.forEach(val => {
+        const option = document.createElement('option');
+        option.value = val; option.text = labels[val] || val;
+        select.appendChild(option);
+    });
+    if (optionsArray.length === 1) { select.value = optionsArray[0]; select.dispatchEvent(new Event('change')); }
+}
+
+function hideResults() {
+    document.getElementById('topResult').style.display = 'none';
+    document.getElementById('sub1Result').style.display = 'none';
+    document.getElementById('sub2Result').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('measurementSection').style.display = 'none';
+    document.getElementById('calcWrapper').style.display = 'none';
+    document.getElementById('diagramContainer').style.display = 'none';
+    notifyParentHeight();
+}
+
+function updateSub1() { 
+    hideResults();
+    if(!val('topSpeaker')) { ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } 
+    populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')}));
+}
+
+function updateSub2() { 
+    hideResults(); 
+    if(!val('sub1Speaker')) { ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } 
+    populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')})); 
+}
+
+function updateSub1Mode() { 
+    hideResults();
+    if(!val('sub2Speaker')) { ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } 
+    document.getElementById('sub2ModeGroup').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block';
+    document.getElementById('distSub2Group').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block';
+    populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')})); 
+}
+
+function updateSub2Mode() { 
+    hideResults(); 
+    if(!val('sub1Mode')) { populateDropdown('sub2Mode', []); return; }
+    populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')}));
+}
+
+function applyPolarity(elementId, value) {
+    const el = document.getElementById(elementId);
+    el.innerText = value; 
+    el.className = (value === "-") ? "pol-minus" : "pol-plus";
+}
+
+function getFinalPolarity(basePol, isInverted) {
+    if (!isInverted) return basePol;
+    return basePol === '+' ? '-' : '+';
+}
+
+let currentPresetData = null;
+
+function showResults() {
+    const key = `${val('topSpeaker')}-${val('sub1Speaker')}-${val('sub1Mode')}-${val('sub2Speaker')}-${val('sub2Mode')}`;
+    if (val('topSpeaker') && val('sub1Speaker') && val('sub1Mode') && val('sub2Speaker') && val('sub2Mode')) {
+        const preset = presetDatabase[key];
+        if (preset) {
+            currentPresetData = preset;
+            document.getElementById('topDelay').innerText = preset.topDelay; applyPolarity('topPol', preset.topPol);
+            document.getElementById('topResult').style.display = 'flex';
+            document.getElementById('sub1Delay').innerText = preset.sub1Delay; applyPolarity('sub1Pol', preset.sub1Pol);
+            document.getElementById('sub1Result').style.display = 'flex';
+            
+            if (val('sub2Speaker') !== 'none') {
+                document.getElementById('sub2Delay').innerText = preset.sub2Delay; applyPolarity('sub2Pol', preset.sub2Pol);
+                document.getElementById('sub2Result').style.display = 'flex';
+            }
+            
+            document.getElementById('invTop').checked = false;
+            document.getElementById('invSub1').checked = false;
+            document.getElementById('invSub2').checked = false;
+            
+            document.getElementById('measurementSection').style.display = 'block';
+            document.getElementById('calcWrapper').style.display = 'block';
+            calculateTotal();
+            notifyParentHeight();
+        } else {
+            document.getElementById('errorMessage').style.display = 'block';
+            notifyParentHeight();
+        }
+    }
+}
+
+function drawDiagram(dTop, dSub1, dSub2) {
+    const top = val('topSpeaker'); const sub1 = val('sub1Speaker'); const sub2 = val('sub2Speaker'); 
+    const hasSub2 = sub2 !== 'none';
+    const container = document.getElementById('diagramContainer');
+    let shiftTop = 0, shiftSub1 = 0, shiftSub2 = 0;
+    let canCalc = (dTop !== null && dSub1 !== null);
+    if (hasSub2 && dSub2 === null) canCalc = false;
+
+    if (canCalc) {
+        let maxD = Math.max(dTop, dSub1);
+        if (hasSub2) maxD = Math.max(maxD, dSub2);
+        const scale = 40;
+        shiftTop = Math.min((maxD - dTop) * scale, 200);
+        shiftSub1 = Math.min((maxD - dSub1) * scale, 200);
+        if (hasSub2) shiftSub2 = Math.min((maxD - dSub2) * scale, 200);
+    }
+
+    let svg = `<svg width="100%" height="260" viewBox="0 0 450 260" style="background: white; border-radius: 4px;">
+        <line x1="10" y1="230" x2="440" y2="230" stroke="#7f8c8d" stroke-width="2" />
+        <circle cx="410" cy="200" r="10" stroke="#e74c3c" stroke-width="2" fill="none" />
+        <circle cx="410" cy="200" r="3" fill="#e74c3c" />
+        <text x="410" y="225" font-size="11" fill="#e74c3c" text-anchor="middle">Mic</text>`;
+    
+    let yCoord = 230;
+    const boxes = [];
+    if (hasSub2) { yCoord -= 50; boxes.push({ name: labels[sub2], label: "Sub 2", y: yCoord, height: 50, color: '#7f8c8d', shift: shiftSub2 }); }
+    yCoord -= 50; boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
+    yCoord -= 60; boxes.push({ name: labels[top], label: "Top", y: yCoord, height: 60, color: '#34495e', shift: shiftTop });
+
+    boxes.forEach(box => {
+        let currentX = 30 + box.shift;
+        svg += `<rect x="${currentX}" y="${box.y}" width="90" height="${box.height}" fill="${box.color}" stroke="#2c3e50" stroke-width="1.5" rx="3" />
+                <text x="${currentX + 45}" y="${box.y + box.height/2 + 4}" font-size="12" fill="white" font-weight="bold" text-anchor="middle">${box.name}</text>`;
+        let axisY = box.y + box.height/2;
+        svg += `<line x1="${currentX + 90}" y1="${axisY}" x2="400" y2="200" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="4,4" />
+                <text x="${currentX + 90 + (400 - (currentX + 90))/2}" y="${axisY - (axisY-200)/2 - 5}" font-size="10" fill="#d35400" text-anchor="middle">${box.label}</text>`;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+    container.style.display = 'flex';
+}
+
+function calculateTotal() {
+    if (!currentPresetData) return;
+    document.getElementById('calcNameTop').innerText = labels[val('topSpeaker')];
+    document.getElementById('calcNameSub1').innerText = labels[val('sub1Speaker')];
+    
+    const hasSub2 = val('sub2Speaker') !== 'none';
+    document.getElementById('calcRowSub2').style.display = hasSub2 ? 'table-row' : 'none';
+    if (hasSub2) document.getElementById('calcNameSub2').innerText = labels[val('sub2Speaker')];
+
+    const temp = parseFloat(val('temp')) || 20;
+    const c = 331.3 + (0.606 * temp);
+
+    const dTopStr = val('distTop'), dSub1Str = val('distSub1'), dSub2Str = val('distSub2');
+    const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null;
+    const dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null;
+    const dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
+
+    drawDiagram(dTop, dSub1, dSub2);
+
+    let gTop = 0, gSub1 = 0, gSub2 = 0;
+    let canCalc = (dTop !== null && dSub1 !== null);
+    if (hasSub2 && dSub2 === null) canCalc = false;
+
+    if (canCalc) {
+        let maxD = Math.max(dTop, dSub1);
+        if (hasSub2) maxD = Math.max(maxD, dSub2);
+        gTop = ((maxD - dTop) / c) * 1000;
+        gSub1 = ((maxD - dSub1) / c) * 1000;
+        if (hasSub2) gSub2 = ((maxD - dSub2) / c) * 1000;
+    }
+
+    const pTop = parseFloat(currentPresetData.topDelay) || 0;
+    const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
+    const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
+
+    const polTop = getFinalPolarity(currentPresetData.topPol, document.getElementById('invTop').checked);
+    const polSub1 = getFinalPolarity(currentPresetData.sub1Pol, document.getElementById('invSub1').checked);
+    const polSub2 = hasSub2 ? getFinalPolarity(currentPresetData.sub2Pol, document.getElementById('invSub2').checked) : '+';
+
+    const writeUI = (row, preset, geo, final, pol) => {
+        document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
+        document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
+        document.getElementById(`calcFinal${row}`).innerText = final.toFixed(1) + " ms";
+        applyPolarity(`calcPol${row}`, pol);
     };
 
-    window.onload = function() { populateDropdown('topSpeaker', getAvailable(0, {})); };
-
-    function val(id) { return document.getElementById(id).value; }
-
-    function getAvailable(targetIndex, conditions) {
-        const options = new Set();
-        Object.keys(presetDatabase).forEach(key => {
-            const parts = key.split('-');
-            let match = true;
-            for (const idx in conditions) {
-                if (conditions[idx] && parts[idx] !== conditions[idx]) { match = false; break; }
-            }
-            if (match) options.add(parts[targetIndex]);
-        });
-        return Array.from(options);
-    }
-
-    function populateDropdown(id, optionsArray) {
-        const select = document.getElementById(id);
-        select.innerHTML = '<option value="">-- Vyber --</option>';
-        select.disabled = optionsArray.length === 0;
-        optionsArray.forEach(val => {
-            const option = document.createElement('option');
-            option.value = val; option.text = labels[val] || val; select.appendChild(option);
-        });
-        if(optionsArray.length === 1) { select.value = optionsArray[0]; select.dispatchEvent(new Event('change')); }
-    }
-
-    function hideResults() {
-        document.getElementById('topResult').style.display = 'none';
-        document.getElementById('sub1Result').style.display = 'none';
-        document.getElementById('sub2Result').style.display = 'none';
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('measurementSection').style.display = 'none';
-        document.getElementById('calcWrapper').style.display = 'none';
-        document.getElementById('diagramContainer').style.display = 'none';
-    }
-
-    function updateSub1() { hideResults(); if(!val('topSpeaker')) { ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')})); }
-    function updateSub2() { hideResults(); if(!val('sub1Speaker')) { ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')})); }
-    function updateSub1Mode() { hideResults(); if(!val('sub2Speaker')) { ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } document.getElementById('sub2ModeGroup').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; document.getElementById('distSub2Group').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')})); }
-    function updateSub2Mode() { hideResults(); if(!val('sub1Mode')) { populateDropdown('sub2Mode', []); return; } populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')})); }
-
-    function applyPolarity(elementId, value) {
-        const el = document.getElementById(elementId);
-        el.innerText = value; el.className = (value === "-") ? "pol-minus" : "pol-plus";
-    }
-
-    // Pomocná funkce pro otočení polarity
-    function getFinalPolarity(basePol, isInverted) {
-        if (!isInverted) return basePol;
-        return basePol === '+' ? '-' : '+';
-    }
-
-    let currentPresetData = null;
-
-    function showResults() {
-        const key = `${val('topSpeaker')}-${val('sub1Speaker')}-${val('sub1Mode')}-${val('sub2Speaker')}-${val('sub2Mode')}`;
-        
-        if (val('topSpeaker') && val('sub1Speaker') && val('sub1Mode') && val('sub2Speaker') && val('sub2Mode')) {
-            const preset = presetDatabase[key];
-            if (preset) {
-                currentPresetData = preset;
-                document.getElementById('topDelay').innerText = preset.topDelay; applyPolarity('topPol', preset.topPol); document.getElementById('topResult').style.display = 'flex';
-                document.getElementById('sub1Delay').innerText = preset.sub1Delay; applyPolarity('sub1Pol', preset.sub1Pol); document.getElementById('sub1Result').style.display = 'flex';
-
-                if (val('sub2Speaker') !== 'none') {
-                    document.getElementById('sub2Delay').innerText = preset.sub2Delay; applyPolarity('sub2Pol', preset.sub2Pol); document.getElementById('sub2Result').style.display = 'flex';
-                }
-                
-                // Resetování uživatelských zatržítek polarity při změně presetu
-                document.getElementById('invTop').checked = false;
-                document.getElementById('invSub1').checked = false;
-                document.getElementById('invSub2').checked = false;
-                
-                document.getElementById('measurementSection').style.display = 'block';
-                document.getElementById('calcWrapper').style.display = 'block';
-                
-                calculateTotal(); 
-            } else {
-                document.getElementById('errorMessage').style.display = 'block';
-            }
-        }
-    }
-
-    function drawDiagram(dTop, dSub1, dSub2) {
-        const top = val('topSpeaker'); const sub1 = val('sub1Speaker'); const sub2 = val('sub2Speaker'); const hasSub2 = sub2 !== 'none';
-        const container = document.getElementById('diagramContainer');
-        
-        let shiftTop = 0, shiftSub1 = 0, shiftSub2 = 0;
-        let canCalc = (dTop !== null && dSub1 !== null);
-        if(hasSub2 && dSub2 === null) canCalc = false;
-
-        if (canCalc) {
-            let maxD = Math.max(dTop, dSub1);
-            if(hasSub2) maxD = Math.max(maxD, dSub2);
-            const scale = 40; 
-            shiftTop = Math.min((maxD - dTop) * scale, 200);
-            shiftSub1 = Math.min((maxD - dSub1) * scale, 200);
-            if(hasSub2) shiftSub2 = Math.min((maxD - dSub2) * scale, 200);
-        }
-        
-        let svg = `<svg width="100%" height="260" viewBox="0 0 450 260" style="background:white; border-radius:4px;">
-            <line x1="10" y1="230" x2="440" y2="230" stroke="#7f8c8d" stroke-width="2" />
-            <circle cx="410" cy="200" r="10" stroke="#e74c3c" stroke-width="2" fill="none" />
-            <circle cx="410" cy="200" r="3" fill="#e74c3c" />
-            <text x="410" y="225" font-size="11" fill="#e74c3c" text-anchor="middle">Mic</text>`;
-
-        let yCoord = 230; 
-        const boxes = [];
-        
-        if (hasSub2) { yCoord -= 50; boxes.push({ name: labels[sub2], label: "Sub 2", y: yCoord, height: 50, color: '#7f8c8d', shift: shiftSub2 }); }
-        yCoord -= 50; boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
-        yCoord -= 60; boxes.push({ name: labels[top], label: "Top", y: yCoord, height: 60, color: '#34495e', shift: shiftTop });
-
-        boxes.forEach(box => {
-            let currentX = 30 + box.shift;
-            svg += `<rect x="${currentX}" y="${box.y}" width="90" height="${box.height}" fill="${box.color}" stroke="#2c3e50" stroke-width="1.5" rx="3" />
-                   <text x="${currentX + 45}" y="${box.y + box.height/2 + 4}" font-size="12" fill="white" font-weight="bold" text-anchor="middle">${box.name}</text>`;
-            let axisY = box.y + box.height/2; 
-            svg += `<line x1="${currentX + 90}" y1="${axisY}" x2="400" y2="200" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="4,4" />
-                   <text x="${currentX + 90 + (400 - (currentX + 90))/2}" y="${axisY - (axisY-200)/2 - 5}" font-size="10" fill="#d35400" text-anchor="middle">${box.label}</text>`;
-        });
-
-        svg += `</svg>`;
-        container.innerHTML = svg;
-        container.style.display = 'flex';
-    }
-
-    function calculateTotal() {
-        if (!currentPresetData) return;
-
-        document.getElementById('calcNameTop').innerText = labels[val('topSpeaker')];
-        document.getElementById('calcNameSub1').innerText = labels[val('sub1Speaker')];
-        const hasSub2 = val('sub2Speaker') !== 'none';
-        document.getElementById('calcRowSub2').style.display = hasSub2 ? 'table-row' : 'none';
-        if(hasSub2) document.getElementById('calcNameSub2').innerText = labels[val('sub2Speaker')];
-
-        const temp = parseFloat(val('temp')) || 20;
-        const c = 331.3 + (0.606 * temp);
-
-        const dTopStr = val('distTop'), dSub1Str = val('distSub1'), dSub2Str = val('distSub2');
-        const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null;
-        const dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null;
-        const dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
-
-        drawDiagram(dTop, dSub1, dSub2);
-
-        let gTop = 0, gSub1 = 0, gSub2 = 0;
-        let canCalc = (dTop !== null && dSub1 !== null);
-        if(hasSub2 && dSub2 === null) canCalc = false;
-
-        if (canCalc) {
-            let maxD = Math.max(dTop, dSub1);
-            if(hasSub2) maxD = Math.max(maxD, dSub2);
-            gTop = ((maxD - dTop) / c) * 1000;
-            gSub1 = ((maxD - dSub1) / c) * 1000;
-            if(hasSub2) gSub2 = ((maxD - dSub2) / c) * 1000;
-        }
-
-        const pTop = parseFloat(currentPresetData.topDelay) || 0;
-        const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
-        const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
-
-        // Načtení finálních polarit včetně zohlednění uživatelského kliknutí
-        const polTop = getFinalPolarity(currentPresetData.topPol, document.getElementById('invTop').checked);
-        const polSub1 = getFinalPolarity(currentPresetData.sub1Pol, document.getElementById('invSub1').checked);
-        const polSub2 = hasSub2 ? getFinalPolarity(currentPresetData.sub2Pol, document.getElementById('invSub2').checked) : '+';
-
-        const writeUI = (row, preset, geo, final, pol) => {
-            document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
-            document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
-            document.getElementById(`calcFinal${row}`).innerText = final.toFixed(1) + " ms";
-            applyPolarity(`calcPol${row}`, pol);
-        };
-
-        writeUI('Top', pTop, gTop, pTop + gTop, polTop);
-        writeUI('Sub1', pSub1, gSub1, pSub1 + gSub1, polSub1);
-        if(hasSub2) writeUI('Sub2', pSub2, gSub2, pSub2 + gSub2, polSub2);
-    }
+    writeUI('Top', pTop, gTop, pTop + gTop, polTop);
+    writeUI('Sub1', pSub1, gSub1, pSub1 + gSub1, polSub1);
+    if (hasSub2) writeUI('Sub2', pSub2, gSub2, pSub2 + gSub2, polSub2);
+    
+    notifyParentHeight();
+}
 </script>
-
 </body>
 </html>
