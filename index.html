@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-Acoustics Setup</title>
     <style>
-        /* Sjednocení box-modelu pro přesné zarovnání */
         * {
             box-sizing: border-box;
         }
@@ -49,16 +48,14 @@
             font-size: 0.95em;
         }
         
-        /* Flexibilní řádek pro select a výsledek */
         .input-row {
             display: flex;
             gap: 15px;
-            align-items: stretch; /* Zajistí stejnou výšku prvků */
+            align-items: stretch; 
         }
         
-        /* Jednotný vzhled výběrových menu */
         select {
-            flex: 1; /* Zabere volné místo */
+            flex: 1; 
             min-width: 180px;
             height: 44px;
             padding: 0 12px;
@@ -77,20 +74,19 @@
             background-color: #ffffff;
         }
         
-        /* Oblíbený inline box s výsledky */
         .inline-result {
             display: none;
-            align-items: center; /* Vertikální zarovnání textu */
-            height: 44px; /* Přesně stejná výška jako select */
+            align-items: center; 
+            height: 44px; 
             background-color: #e8f4f8;
             padding: 0 16px;
             border-radius: 6px;
             border-left: 5px solid #3498db;
             font-size: 0.95em;
-            white-space: nowrap; /* Zabrání rozlomení textu */
+            white-space: nowrap; 
+            flex: 0 0 185px; /* PEVNÁ ŠÍŘKA: donutí selecty být stejně široké */
         }
         
-        /* Zvýraznění polarity */
         .pol-minus {
             color: #e74c3c;
             font-weight: bold;
@@ -103,7 +99,6 @@
             color: #2c3e50;
         }
 
-        /* Chybová hláška sladěná s designem */
         .error-message {
             text-align: center;
             color: #e74c3c;
@@ -123,7 +118,6 @@
             color: #95a5a6;
         }
 
-        /* Zalomí se na malých displejích pod sebe */
         @media (max-width: 480px) {
             .input-row {
                 flex-direction: column;
@@ -131,6 +125,7 @@
             }
             select, .inline-result {
                 width: 100%;
+                flex: auto; /* Reset šířky pro mobilní telefony */
             }
         }
     </style>
@@ -208,11 +203,9 @@
             const preset = presetDatabase[searchKey];
 
             if (preset) {
-                // Vyplnění Delay
                 document.getElementById('topDelay').innerText = preset.topDelay;
                 document.getElementById('subDelay').innerText = preset.subDelay;
 
-                // Zpracování polarity (Top)
                 const topPolEl = document.getElementById('topPol');
                 topPolEl.innerText = preset.topPol;
                 if (preset.topPol === "-") {
@@ -221,7 +214,6 @@
                     topPolEl.className = "pol-plus";
                 }
 
-                // Zpracování polarity (Sub)
                 const subPolEl = document.getElementById('subPol');
                 subPolEl.innerText = preset.subPol;
                 if (preset.subPol === "-") {
@@ -231,8 +223,6 @@
                 }
 
                 errorMessage.style.display = 'none';
-                
-                // Použijeme flex, aby zůstalo zachováno vertikální zarovnání v modrém boxu
                 topResult.style.display = 'flex';
                 subResult.style.display = 'flex';
             } else {
