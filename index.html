@@ -136,18 +136,24 @@
 
     <div class="form-group">
         <label>Režim sestavy:</label>
-        <select id="subMode" onchange="showResults()" disabled></select>
+        <select id="subMode" onchange="showResults()" disabled style="width: 100%;"></select>
     </div>
 
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=7"></script>
+<script src="data.js?v=8"></script>
 
 <script>
-    // Překladové názvy pro roletky, aby to hezky vypadalo
+    // Zde jsou PŘEKLADY. Vlevo je klíč z databáze, vpravo co se ukáže uživateli.
     const labels = {
-        "kara2": "Kara II", "a15": "A15", "a10": "A10",
+        "kara2": "Kara II", 
+        "a15": "A15", 
+        "a10": "A10",
+        "arcs_wifo": "ARCS Wide/Focus",
+        "arcs2": "ARCS II",
+        "arcs": "ARCS (Legacy)",
+        "x12": "X12",
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
         "none": "-- Bez 2. subu --",
         "60": "Standard (60 Hz)", "100": "Standard (100 Hz)",
@@ -158,12 +164,10 @@
         "cx": "Cardioid Cx (Sub1 100Hz / Sub2 60Hz)"
     };
 
-    // Spustí se po načtení stránky
     window.onload = function() {
         populateDropdown('topSpeaker', getAvailableOptions(0, []));
     };
 
-    // Získá možné hodnoty pro danou roletku (index: 0=Top, 1=Sub1, 2=Sub2, 3=Mode)
     function getAvailableOptions(index, filters) {
         const options = new Set();
         Object.keys(presetDatabase).forEach(key => {
@@ -177,7 +181,6 @@
         return Array.from(options);
     }
 
-    // Naplní <select> možnými hodnotami
     function populateDropdown(id, optionsArray) {
         const select = document.getElementById(id);
         select.innerHTML = '<option value="">-- Vyber --</option>';
@@ -190,7 +193,6 @@
             select.appendChild(option);
         });
 
-        // Pokud existuje jen jedna volba (např. "none"), vybere se automaticky
         if(optionsArray.length === 1) {
             select.value = optionsArray[0];
         }
