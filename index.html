@@ -6,95 +6,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-Acoustics Setup</title>
     <style>
+        /* Sjednocení box-modelu pro přesné zarovnání */
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #2c3e50;
             display: flex;
             justify-content: center;
             padding: 20px;
         }
+
         .container {
-            background-color: #fff;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 500px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            max-width: 550px;
             width: 100%;
         }
+
         h1 {
-            font-size: 1.5em;
+            font-size: 1.7em;
             text-align: center;
-            color: #2c3e50;
+            color: #1a252f;
             margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
             margin-bottom: 25px;
         }
-        .form-group {
-            margin-bottom: 20px;
-        }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.95em;
         }
         
         /* Flexibilní řádek pro select a výsledek */
         .input-row {
             display: flex;
-            align-items: center;
             gap: 15px;
-            flex-wrap: wrap; /* Zalomí se na malých displejích */
+            align-items: stretch; /* Zajistí stejnou výšku prvků */
         }
         
+        /* Jednotný vzhled výběrových menu */
         select {
-            flex: 1; /* Zabere zbývající volné místo */
-            min-width: 160px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            flex: 1; /* Zabere volné místo */
+            min-width: 180px;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             font-size: 1em;
-            background-color: #fff;
+            background-color: #f8fafc;
+            color: #2c3e50;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s;
         }
         
-        /* Inline box s výsledky vedle selectu */
+        select:focus {
+            border-color: #3498db;
+            background-color: #ffffff;
+        }
+        
+        /* Oblíbený inline box s výsledky */
         .inline-result {
             display: none;
+            align-items: center; /* Vertikální zarovnání textu */
+            height: 44px; /* Přesně stejná výška jako select */
             background-color: #e8f4f8;
-            padding: 9px 15px;
-            border-radius: 4px;
-            border-left: 4px solid #3498db;
+            padding: 0 16px;
+            border-radius: 6px;
+            border-left: 5px solid #3498db;
             font-size: 0.95em;
-            white-space: nowrap; /* Zabrání rozlomení textu uvnitř bubliny */
+            white-space: nowrap; /* Zabrání rozlomení textu */
         }
         
-        /* Zvýraznění záporné polarity */
+        /* Zvýraznění polarity */
         .pol-minus {
             color: #e74c3c;
             font-weight: bold;
             font-size: 1.1em;
         }
+        
         .pol-plus {
             font-weight: bold;
             font-size: 1.1em;
             color: #2c3e50;
         }
 
+        /* Chybová hláška sladěná s designem */
         .error-message {
             text-align: center;
             color: #e74c3c;
+            background-color: #fdf2f2;
+            border: 1px solid #fadbd8;
             font-weight: bold;
-            padding: 15px;
+            padding: 12px;
+            border-radius: 6px;
             display: none;
-            background-color: #fceceb;
-            border-radius: 4px;
-            margin-top: 15px;
+            margin-top: 10px;
         }
+
         .footer {
-            margin-top: 25px;
+            margin-top: 30px;
             font-size: 0.8em;
             text-align: center;
-            color: #7f8c8d;
+            color: #95a5a6;
+        }
+
+        /* Zalomí se na malých displejích pod sebe */
+        @media (max-width: 480px) {
+            .input-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            select, .inline-result {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -113,7 +150,7 @@
                 <option value="a10">A10</option>
             </select>
             <div id="topResult" class="inline-result">
-                Delay: <strong id="topDelay">-</strong> &nbsp;|&nbsp; Pol: <span id="topPol">-</span>
+                Delay: &nbsp;<strong id="topDelay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="topPol">-</span>
             </div>
         </div>
     </div>
@@ -128,7 +165,7 @@
                 <option value="ks28">KS28</option>
             </select>
             <div id="subResult" class="inline-result">
-                Delay: <strong id="subDelay">-</strong> &nbsp;|&nbsp; Pol: <span id="subPol">-</span>
+                Delay: &nbsp;<strong id="subDelay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="subPol">-</span>
             </div>
         </div>
     </div>
@@ -151,7 +188,7 @@
     </div>
 </div>
 
-<script src="data.js?v=3"></script>
+<script src="data.js?v=4"></script>
 
 <script>
     function findPreset() {
@@ -194,8 +231,10 @@
                 }
 
                 errorMessage.style.display = 'none';
-                topResult.style.display = 'block';
-                subResult.style.display = 'block';
+                
+                // Použijeme flex, aby zůstalo zachováno vertikální zarovnání v modrém boxu
+                topResult.style.display = 'flex';
+                subResult.style.display = 'flex';
             } else {
                 topResult.style.display = 'none';
                 subResult.style.display = 'none';
