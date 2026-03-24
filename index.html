@@ -22,7 +22,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            max-width: 550px;
+            max-width: 600px;
             width: 100%;
         }
 
@@ -67,10 +67,8 @@
             transition: border-color 0.2s, background-color 0.2s;
         }
         
-        select:focus {
-            border-color: #3498db;
-            background-color: #ffffff;
-        }
+        select:focus { border-color: #3498db; background-color: #ffffff; }
+        select:disabled { background-color: #eef2f5; cursor: not-allowed; color: #95a5a6; }
         
         .inline-result {
             display: none;
@@ -85,29 +83,8 @@
             flex: 0 0 185px; 
         }
         
-        .pol-minus {
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        .pol-plus {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #2c3e50;
-        }
-
-        .error-message {
-            text-align: center;
-            color: #e74c3c;
-            background-color: #fdf2f2;
-            border: 1px solid #fadbd8;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 6px;
-            display: none;
-            margin-top: 10px;
-        }
+        .pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
+        .pol-plus { font-weight: bold; font-size: 1.1em; color: #2c3e50; }
 
         .footer {
             margin-top: 30px;
@@ -117,14 +94,8 @@
         }
 
         @media (max-width: 480px) {
-            .input-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            select, .inline-result {
-                width: 100%;
-                flex: auto; 
-            }
+            .input-row { flex-direction: column; gap: 10px; }
+            select, .inline-result { width: 100%; flex: auto; }
         }
     </style>
 </head>
@@ -134,14 +105,9 @@
     <h1>L-Acoustics Setup</h1>
     
     <div class="form-group">
-        <label for="topSpeaker">Top reprobedna:</label>
+        <label>Top reprobedna:</label>
         <div class="input-row">
-            <select id="topSpeaker" onchange="findPreset()">
-                <option value="">-- Vyber Top --</option>
-                <option value="kara2">Kara II</option>
-                <option value="a15">A15</option>
-                <option value="a10">A10</option>
-            </select>
+            <select id="topSpeaker" onchange="updateSub1()"></select>
             <div id="topResult" class="inline-result">
                 Delay: &nbsp;<strong id="topDelay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="topPol">-</span>
             </div>
@@ -149,93 +115,155 @@
     </div>
 
     <div class="form-group">
-        <label for="subSpeaker">Subwoofer:</label>
+        <label>Subwoofer 1:</label>
         <div class="input-row">
-            <select id="subSpeaker" onchange="findPreset()">
-                <option value="">-- Vyber Sub --</option>
-                <option value="sb18">SB18</option>
-                <option value="ks21">KS21</option>
-                <option value="ks28">KS28</option>
-            </select>
-            <div id="subResult" class="inline-result">
-                Delay: &nbsp;<strong id="subDelay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="subPol">-</span>
+            <select id="sub1Speaker" onchange="updateSub2()" disabled></select>
+            <div id="sub1Result" class="inline-result">
+                Delay: &nbsp;<strong id="sub1Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub1Pol">-</span>
             </div>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="subMode">Režim Subwooferu:</label>
-        <select id="subMode" onchange="findPreset()" style="width: 100%;">
-            <option value="">-- Vyber Režim --</option>
-            <option value="60">Standard (60 Hz)</option>
-            <option value="100">Standard (100 Hz)</option>
-            <option value="60_c">Cardioid C (60 Hz)</option>
-            <option value="100_c">Cardioid C (100 Hz)</option>
-            <option value="60_cx">Cardioid Cx (60 Hz)</option>
-            <option value="100_cx">Cardioid Cx (100 Hz)</option>
-        </select>
+        <label>Subwoofer 2:</label>
+        <div class="input-row">
+            <select id="sub2Speaker" onchange="updateMode()" disabled></select>
+            <div id="sub2Result" class="inline-result">
+                Delay: &nbsp;<strong id="sub2Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub2Pol">-</span>
+            </div>
+        </div>
     </div>
 
-    <div id="errorMessage" class="error-message">
-        Tato kombinace není v manuálu definována.
+    <div class="form-group">
+        <label>Režim sestavy:</label>
+        <select id="subMode" onchange="showResults()" disabled></select>
     </div>
 
-    <div class="footer">
-        Zdroj dat: Preset Guide v28.0
-    </div>
+    <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=6"></script>
+<script src="data.js?v=7"></script>
 
 <script>
-    function findPreset() {
-        const topSelect = document.getElementById('topSpeaker');
-        const subSelect = document.getElementById('subSpeaker');
+    // Překladové názvy pro roletky, aby to hezky vypadalo
+    const labels = {
+        "kara2": "Kara II", "a15": "A15", "a10": "A10",
+        "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
+        "none": "-- Bez 2. subu --",
+        "60": "Standard (60 Hz)", "100": "Standard (100 Hz)",
+        "60_c": "Cardioid C (60 Hz)", "100_c": "Cardioid C (100 Hz)",
+        "60_cx": "Cardioid Cx (60 Hz)", "100_cx": "Cardioid Cx (100 Hz)",
+        "standard": "Standard (Sub1 100Hz / Sub2 60Hz)",
+        "c": "Cardioid C (Sub1 100Hz / Sub2 60Hz)",
+        "cx": "Cardioid Cx (Sub1 100Hz / Sub2 60Hz)"
+    };
+
+    // Spustí se po načtení stránky
+    window.onload = function() {
+        populateDropdown('topSpeaker', getAvailableOptions(0, []));
+    };
+
+    // Získá možné hodnoty pro danou roletku (index: 0=Top, 1=Sub1, 2=Sub2, 3=Mode)
+    function getAvailableOptions(index, filters) {
+        const options = new Set();
+        Object.keys(presetDatabase).forEach(key => {
+            const parts = key.split('-');
+            let match = true;
+            for(let i=0; i<filters.length; i++) {
+                if(filters[i] && parts[i] !== filters[i]) match = false;
+            }
+            if(match) options.add(parts[index]);
+        });
+        return Array.from(options);
+    }
+
+    // Naplní <select> možnými hodnotami
+    function populateDropdown(id, optionsArray) {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="">-- Vyber --</option>';
+        select.disabled = optionsArray.length === 0;
+
+        optionsArray.forEach(val => {
+            const option = document.createElement('option');
+            option.value = val;
+            option.text = labels[val] || val;
+            select.appendChild(option);
+        });
+
+        // Pokud existuje jen jedna volba (např. "none"), vybere se automaticky
+        if(optionsArray.length === 1) {
+            select.value = optionsArray[0];
+        }
+    }
+
+    function hideResults() {
+        document.getElementById('topResult').style.display = 'none';
+        document.getElementById('sub1Result').style.display = 'none';
+        document.getElementById('sub2Result').style.display = 'none';
+    }
+
+    function updateSub1() {
+        hideResults();
+        const top = document.getElementById('topSpeaker').value;
+        if(!top) {
+            populateDropdown('sub1Speaker', []); populateDropdown('sub2Speaker', []); populateDropdown('subMode', []); return;
+        }
+        populateDropdown('sub1Speaker', getAvailableOptions(1, [top]));
+        updateSub2();
+    }
+
+    function updateSub2() {
+        hideResults();
+        const top = document.getElementById('topSpeaker').value;
+        const sub1 = document.getElementById('sub1Speaker').value;
+        if(!sub1) {
+            populateDropdown('sub2Speaker', []); populateDropdown('subMode', []); return;
+        }
+        populateDropdown('sub2Speaker', getAvailableOptions(2, [top, sub1]));
+        updateMode();
+    }
+
+    function updateMode() {
+        hideResults();
+        const top = document.getElementById('topSpeaker').value;
+        const sub1 = document.getElementById('sub1Speaker').value;
+        const sub2 = document.getElementById('sub2Speaker').value;
+        if(!sub2) {
+            populateDropdown('subMode', []); return;
+        }
+        populateDropdown('subMode', getAvailableOptions(3, [top, sub1, sub2]));
+        showResults();
+    }
+
+    function applyPolarity(elementId, value) {
+        const el = document.getElementById(elementId);
+        el.innerText = value;
+        el.className = (value === "-") ? "pol-minus" : "pol-plus";
+    }
+
+    function showResults() {
+        const top = document.getElementById('topSpeaker').value;
+        const sub1 = document.getElementById('sub1Speaker').value;
+        const sub2 = document.getElementById('sub2Speaker').value;
         const mode = document.getElementById('subMode').value;
         
-        const top = topSelect.value;
-        const sub = subSelect.value;
-        
-        const errorMessage = document.getElementById('errorMessage');
-        const topResult = document.getElementById('topResult');
-        const subResult = document.getElementById('subResult');
-
-        if (top && sub && mode) {
-            const searchKey = top + "-" + sub + "-" + mode;
-            const preset = presetDatabase[searchKey];
-
+        if (top && sub1 && sub2 && mode) {
+            const preset = presetDatabase[`${top}-${sub1}-${sub2}-${mode}`];
             if (preset) {
                 document.getElementById('topDelay').innerText = preset.topDelay;
-                document.getElementById('subDelay').innerText = preset.subDelay;
+                applyPolarity('topPol', preset.topPol);
+                document.getElementById('topResult').style.display = 'flex';
 
-                const topPolEl = document.getElementById('topPol');
-                topPolEl.innerText = preset.topPol;
-                if (preset.topPol === "-") {
-                    topPolEl.className = "pol-minus";
-                } else {
-                    topPolEl.className = "pol-plus";
+                document.getElementById('sub1Delay').innerText = preset.sub1Delay;
+                applyPolarity('sub1Pol', preset.sub1Pol);
+                document.getElementById('sub1Result').style.display = 'flex';
+
+                if (sub2 !== 'none') {
+                    document.getElementById('sub2Delay').innerText = preset.sub2Delay;
+                    applyPolarity('sub2Pol', preset.sub2Pol);
+                    document.getElementById('sub2Result').style.display = 'flex';
                 }
-
-                const subPolEl = document.getElementById('subPol');
-                subPolEl.innerText = preset.subPol;
-                if (preset.subPol === "-") {
-                    subPolEl.className = "pol-minus";
-                } else {
-                    subPolEl.className = "pol-plus";
-                }
-
-                errorMessage.style.display = 'none';
-                topResult.style.display = 'flex';
-                subResult.style.display = 'flex';
-            } else {
-                topResult.style.display = 'none';
-                subResult.style.display = 'none';
-                errorMessage.style.display = 'block';
             }
-        } else {
-            topResult.style.display = 'none';
-            subResult.style.display = 'none';
-            errorMessage.style.display = 'none';
         }
     }
 </script>
