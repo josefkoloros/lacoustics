@@ -156,7 +156,7 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=10"></script>
+<script src="data.js?v=11"></script>
 
 <script>
     const labels = {
@@ -164,8 +164,8 @@
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
         "none": "-- Bez --",
         "60": "[60] Standard", "100": "[100] Standard",
-        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
-        "60_cx": "[60_Cx] Cardioid", "100_cx": "[100_Cx] Cardioid"
+        "60_c": "[60] Cardioid", "100_c": "[100] Cardioid",
+        "60_cx": "[60] Cardioid Cx", "100_cx": "[100] Cardioid Cx"
     };
 
     window.onload = function() {
@@ -199,8 +199,12 @@
             select.appendChild(option);
         });
 
+        // KLÍČOVÁ OPRAVA ZAMRZÁNÍ:
+        // Pokud aplikace vybere jedinou možnost, musíme ručně spustit event,
+        // aby se kaskáda roletek plynule odemkla až do konce.
         if(optionsArray.length === 1) {
             select.value = optionsArray[0];
+            select.dispatchEvent(new Event('change')); 
         }
     }
 
@@ -217,7 +221,6 @@
             ['sub1Speaker', 'sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
         populateDropdown('sub1Speaker', getAvailableOptions(1, [val('topSpeaker')]));
-        updateSub1Mode();
     }
 
     function updateSub1Mode() {
@@ -226,7 +229,6 @@
             ['sub1Mode', 'sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
         populateDropdown('sub1Mode', getAvailableOptions(2, [val('topSpeaker'), val('sub1Speaker')]));
-        updateSub2();
     }
 
     function updateSub2() {
@@ -235,7 +237,6 @@
             ['sub2Speaker', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
         }
         populateDropdown('sub2Speaker', getAvailableOptions(3, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode')]));
-        updateSub2Mode();
     }
 
     function updateSub2Mode() {
@@ -244,7 +245,6 @@
             populateDropdown('sub2Mode', []); return;
         }
         populateDropdown('sub2Mode', getAvailableOptions(4, [val('topSpeaker'), val('sub1Speaker'), val('sub1Mode'), val('sub2Speaker')]));
-        showResults();
     }
 
     function applyPolarity(elementId, value) {
