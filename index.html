@@ -118,7 +118,6 @@
         .val-geo { color: #f39c12; }
         .val-final { color: #2ecc71; font-weight: bold; font-size: 1.15em; background-color: rgba(46, 204, 113, 0.1); padding: 4px 8px; border-radius: 4px; }
         
-        /* Styl pro nákres */
         .diagram-container {
             display: none;
             justify-content: center;
@@ -130,7 +129,6 @@
             overflow: hidden;
         }
 
-        /* Aby se to při překreslování plynule posouvalo */
         svg rect, svg text, svg line {
             transition: all 0.3s ease-out;
         }
@@ -262,7 +260,7 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=16"></script>
+<script src="data.js?v=17"></script>
 
 <script>
     const labels = {
@@ -345,14 +343,14 @@
                 document.getElementById('measurementSection').style.display = 'block';
                 document.getElementById('calcWrapper').style.display = 'block';
                 
-                calculateTotal(); // Spustí celou kalkulaci i překreslení grafiky
+                calculateTotal(); 
             } else {
                 document.getElementById('errorMessage').style.display = 'block';
             }
         }
     }
 
-    // NOVÁ FUNKCE: Generuje side-view diagram sestavy s dynamickým X posunem
+    // NÁKRES SESTAVY (Opravené pořadí beden)
     function drawDiagram(dTop, dSub1, dSub2) {
         const top = val('topSpeaker');
         const sub1 = val('sub1Speaker');
@@ -361,64 +359,54 @@
 
         const container = document.getElementById('diagramContainer');
         
-        // --- VÝPOČET POSUNU (Animace) ---
         let shiftTop = 0, shiftSub1 = 0, shiftSub2 = 0;
         let canCalc = (dTop !== null && dSub1 !== null);
         if(hasSub2 && dSub2 === null) canCalc = false;
 
         if (canCalc) {
-            // Najdeme bednu, která je nejdál (ta bude stát vzadu)
             let maxD = Math.max(dTop, dSub1);
             if(hasSub2) maxD = Math.max(maxD, dSub2);
 
-            // Bližší bedny se vizuálně posunou dopředu k mikrofonu
-            // 40 pixelů posun za každý chybějící metr (s limitem max 200px, ať to nevyjede z obrazu)
             const scale = 40; 
             shiftTop = Math.min((maxD - dTop) * scale, 200);
             shiftSub1 = Math.min((maxD - dSub1) * scale, 200);
             if(hasSub2) shiftSub2 = Math.min((maxD - dSub2) * scale, 200);
         }
         
-        // Založení SVG - viewBox nastaven na šířku 450 pro dostatek místa
         let svg = `<svg width="100%" height="260" viewBox="0 0 450 260" style="background:white; border-radius:4px;">
             <line x1="10" y1="230" x2="440" y2="230" stroke="#7f8c8d" stroke-width="2" />
-            
             <circle cx="410" cy="200" r="10" stroke="#e74c3c" stroke-width="2" fill="none" />
             <circle cx="410" cy="200" r="3" fill="#e74c3c" />
             <text x="410" y="225" font-size="11" fill="#e74c3c" text-anchor="middle">Mic</text>`;
 
-        // Výpočet Y pozic a jmen beden
         let yCoord = 230; 
         const boxes = [];
 
-        // Sub 1
-        yCoord -= 50; 
-        boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
-
-        // Sub 2 (pokud existuje)
+        // OPRAVA POŘADÍ STAVĚNÍ KOMÍNU (Odspodu)
+        
+        // 1. Sub 2 (Pokud existuje, jde na zem jako první)
         if (hasSub2) {
             yCoord -= 50; 
             boxes.push({ name: labels[sub2], label: "Sub 2", y: yCoord, height: 50, color: '#7f8c8d', shift: shiftSub2 });
         }
 
-        // Top
+        // 2. Sub 1 (Leží na Sub 2, nebo na zemi, pokud Sub 2 není)
+        yCoord -= 50; 
+        boxes.push({ name: labels[sub1], label: "Sub 1", y: yCoord, height: 50, color: '#95a5a6', shift: shiftSub1 });
+
+        // 3. Top (Leží úplně nahoře na subech)
         yCoord -= 60; 
         boxes.push({ name: labels[top], label: "Top", y: yCoord, height: 60, color: '#34495e', shift: shiftTop });
 
-        // Vykreslení beden a Laser Lines
         boxes.forEach(box => {
-            // Základní X souřadnice je 30. K ní přičteme vypočítaný posun
             let currentX = 30 + box.shift;
             
-            // Samotná bedna (obdélník + text)
             svg += `<rect x="${currentX}" y="${box.y}" width="90" height="${box.height}" fill="${box.color}" stroke="#2c3e50" stroke-width="1.5" rx="3" />
                    <text x="${currentX + 45}" y="${box.y + box.height/2 + 4}" font-size="12" fill="white" font-weight="bold" text-anchor="middle">${box.name}</text>`;
             
-            // Konceptuální paprsek měření (od akustického středu bedny k mikrofonu)
             let axisY = box.y + box.height/2; 
             svg += `<line x1="${currentX + 90}" y1="${axisY}" x2="400" y2="200" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="4,4" />`;
             
-            // Popisek paprsku
             svg += `<text x="${currentX + 90 + (400 - (currentX + 90))/2}" y="${axisY - (axisY-200)/2 - 5}" font-size="10" fill="#d35400" text-anchor="middle">${box.label}</text>`;
         });
 
@@ -427,11 +415,9 @@
         container.style.display = 'flex';
     }
 
-    // HLAVNÍ VÝPOČETNÍ JÁDRO
     function calculateTotal() {
         if (!currentPresetData) return;
 
-        // Jména do tabulky
         document.getElementById('calcNameTop').innerText = labels[val('topSpeaker')];
         document.getElementById('calcNameSub1').innerText = labels[val('sub1Speaker')];
         
@@ -439,17 +425,14 @@
         document.getElementById('calcRowSub2').style.display = hasSub2 ? 'table-row' : 'none';
         if(hasSub2) document.getElementById('calcNameSub2').innerText = labels[val('sub2Speaker')];
 
-        // Rychlost zvuku závislá na teplotě
         const temp = parseFloat(val('temp')) || 20;
         const c = 331.3 + (0.606 * temp);
 
-        // Fyzické vzdálenosti
         const dTopStr = val('distTop'), dSub1Str = val('distSub1'), dSub2Str = val('distSub2');
         const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null;
         const dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null;
         const dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
 
-        // --- OKAMŽITĚ PŘEKRESLÍME DIAGRAM ---
         drawDiagram(dTop, dSub1, dSub2);
 
         let gTop = 0, gSub1 = 0, gSub2 = 0;
@@ -464,12 +447,10 @@
             if(hasSub2) gSub2 = ((maxD - dSub2) / c) * 1000;
         }
 
-        // Extrakce pre-alignment zpoždění
         const pTop = parseFloat(currentPresetData.topDelay) || 0;
         const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
         const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
 
-        // Finální součty a UI zápis
         const writeUI = (row, preset, geo, final, pol) => {
             document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
             document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
