@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-Acoustics Setup</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -84,7 +82,7 @@
             border-left: 5px solid #3498db;
             font-size: 0.95em;
             white-space: nowrap; 
-            flex: 0 0 185px; /* PEVNÁ ŠÍŘKA: donutí selecty být stejně široké */
+            flex: 0 0 185px; 
         }
         
         .pol-minus {
@@ -125,7 +123,7 @@
             }
             select, .inline-result {
                 width: 100%;
-                flex: auto; /* Reset šířky pro mobilní telefony */
+                flex: auto; 
             }
         }
     </style>
@@ -168,9 +166,13 @@
     <div class="form-group">
         <label for="subMode">Režim Subwooferu:</label>
         <select id="subMode" onchange="findPreset()" style="width: 100%;">
-            <option value="standard">Standard</option>
-            <option value="c">Cardioid (C)</option>
-            <option value="cx">Cardioid (Cx)</option>
+            <option value="">-- Vyber Režim --</option>
+            <option value="60">Standard (60 Hz)</option>
+            <option value="100">Standard (100 Hz)</option>
+            <option value="60_c">Cardioid C (60 Hz)</option>
+            <option value="100_c">Cardioid C (100 Hz)</option>
+            <option value="60_cx">Cardioid Cx (60 Hz)</option>
+            <option value="100_cx">Cardioid Cx (100 Hz)</option>
         </select>
     </div>
 
@@ -183,7 +185,7 @@
     </div>
 </div>
 
-<script src="data.js?v=4"></script>
+<script src="data.js?v=5"></script>
 
 <script>
     function findPreset() {
@@ -198,7 +200,7 @@
         const topResult = document.getElementById('topResult');
         const subResult = document.getElementById('subResult');
 
-        if (top && sub) {
+        if (top && sub && mode) {
             const searchKey = top + "-" + sub + "-" + mode;
             const preset = presetDatabase[searchKey];
 
