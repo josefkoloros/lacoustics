@@ -53,6 +53,12 @@
             margin-top: 0;
             color: #2980b9;
         }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.8em;
+            text-align: center;
+            color: #7f8c8d;
+        }
     </style>
 </head>
 <body>
@@ -66,6 +72,7 @@
             <option value="">-- Vyber Top --</option>
             <option value="kara2">Kara II</option>
             <option value="a15">A15</option>
+            <option value="a10">A10</option>
         </select>
     </div>
 
@@ -79,40 +86,78 @@
         </select>
     </div>
 
+    <div class="form-group">
+        <label for="subMode">Režim Subwooferu:</label>
+        <select id="subMode" onchange="findPreset()">
+            <option value="standard">Standard ([xx_60] / [xx_100])</option>
+            <option value="c">Cardioid (C)</option>
+            <option value="cx">Cardioid (Cx)</option>
+        </select>
+    </div>
+
     <div id="resultBox" class="result-box">
-        <h3>Doporučené nastavení:</h3>
-        <p><strong>Delay:</strong> <span id="delayValue">-</span></p>
-        <p><strong>Polarita:</strong> <span id="polarityValue">-</span></p>
+        <h3>Pre-alignment Delay:</h3>
+        <p><strong>Top Delay:</strong> <span id="delayTopValue">-</span></p>
+        <p><strong>Sub Delay:</strong> <span id="delaySubValue">-</span></p>
+        <p><strong>Polarita (Top/Sub):</strong> <span id="polarityValue">-</span></p>
+    </div>
+
+    <div class="footer">
+        Zdroj dat: L-Acoustics Preset Guide version 28.0 (Jan 2026)
     </div>
 </div>
 
 <script>
-    // Zde je databáze presetů s ukázkovými hodnotami. 
-    // Po nahrání na GitHub je můžeš kdykoliv upravit podle reálného manuálu!
+    /* Databáze presetů z manuálu v28.0. 
+       Poznámka: U Kara II bereme standardní presety s filtrem [xx_60].
+    */
     const presetDatabase = {
-        "kara2-sb18": { delay: "2.0 ms", polarity: "Positive (+)" },
-        "kara2-ks21": { delay: "1.5 ms", polarity: "Negative (-)" },
-        "kara2-ks28": { delay: "3.2 ms", polarity: "Positive (+)" },
-        "a15-sb18": { delay: "0.0 ms", polarity: "Positive (+)" },
-        "a15-ks21": { delay: "1.0 ms", polarity: "Positive (+)" },
-        "a15-ks28": { delay: "2.5 ms", polarity: "Negative (-)" }
+        // --- Kara II + SB18 ---
+        "kara2-sb18-standard": { topDelay: "2.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "kara2-sb18-c": { topDelay: "8 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "kara2-sb18-cx": { topDelay: "6.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        
+        // --- Kara II + KS21 ---
+        "kara2-ks21-standard": { topDelay: "0.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "kara2-ks21-c": { topDelay: "6 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "kara2-ks21-cx": { topDelay: "5.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+
+        // --- Kara II + KS28 ---
+        "kara2-ks28-standard": { topDelay: "0 ms", subDelay: "5 ms", polarity: "+ / +" },
+        "kara2-ks28-c": { topDelay: "0.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "kara2-ks28-cx": { topDelay: "4.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+
+        // --- A15 + KS21 ---
+        "a15-ks21-standard": { topDelay: "0 ms", subDelay: "2.3 ms", polarity: "+ / +" },
+        "a15-ks21-c": { topDelay: "9 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "a15-ks21-cx": { topDelay: "8 ms", subDelay: "0 ms", polarity: "+ / +" },
+
+        // --- A10 + KS21 ---
+        "a10-ks21-standard": { topDelay: "0 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "a10-ks21-c": { topDelay: "5.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "a10-ks21-cx": { topDelay: "0 ms", subDelay: "0 ms", polarity: "+ / +" }
+        
+        // Ostatní kombinace (např. A15+SB18, A10+KS28) nejsou v manuálu předpočítány.
     };
 
     function findPreset() {
         const top = document.getElementById('topSpeaker').value;
         const sub = document.getElementById('subSpeaker').value;
+        const mode = document.getElementById('subMode').value;
         const resultBox = document.getElementById('resultBox');
         
         if (top && sub) {
-            const searchKey = top + "-" + sub;
+            const searchKey = top + "-" + sub + "-" + mode;
             const preset = presetDatabase[searchKey];
 
             if (preset) {
-                document.getElementById('delayValue').innerText = preset.delay;
+                document.getElementById('delayTopValue').innerText = preset.topDelay;
+                document.getElementById('delaySubValue').innerText = preset.subDelay;
                 document.getElementById('polarityValue').innerText = preset.polarity;
             } else {
-                document.getElementById('delayValue').innerText = "Neznámá kombinace";
-                document.getElementById('polarityValue').innerText = "Neznámá kombinace";
+                document.getElementById('delayTopValue').innerText = "Nedefinováno v manuálu";
+                document.getElementById('delaySubValue').innerText = "Nedefinováno v manuálu";
+                document.getElementById('polarityValue').innerText = "-";
             }
             resultBox.style.display = 'block';
         } else {
