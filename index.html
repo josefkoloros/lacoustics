@@ -18,7 +18,7 @@
             padding: 20px 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
         }
         h1 {
@@ -45,13 +45,43 @@
             margin-top: 20px;
             padding: 15px;
             background-color: #e8f4f8;
-            border-left: 5px solid #3498db;
             border-radius: 4px;
             display: none;
         }
         .result-box h3 {
             margin-top: 0;
+            margin-bottom: 15px;
             color: #2980b9;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        /* Nový styl pro absolutně jistý jeden řádek */
+        .speaker-row {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 10px;
+            font-size: 1em;
+            border-top: 1px solid #eee;
+            border-right: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .speaker-name {
+            font-weight: bold;
+            color: #2c3e50;
+            display: inline-block;
+            min-width: 70px;
+        }
+        .polarity-negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .kombinace-nenalezena {
+            text-align: center;
+            color: #e74c3c;
+            font-weight: bold;
+            padding: 10px 0;
         }
         .footer {
             margin-top: 20px;
@@ -70,9 +100,9 @@
         <label for="topSpeaker">Top reprobedna:</label>
         <select id="topSpeaker" onchange="findPreset()">
             <option value="">-- Vyber Top --</option>
-            <option value="kara2">Kara II</option>
-            <option value="a15">A15</option>
-            <option value="a10">A10</option>
+            <option value="KARA II">Kara II</option>
+            <option value="A15">A15</option>
+            <option value="A10">A10</option>
         </select>
     </div>
 
@@ -80,16 +110,16 @@
         <label for="subSpeaker">Subwoofer:</label>
         <select id="subSpeaker" onchange="findPreset()">
             <option value="">-- Vyber Sub --</option>
-            <option value="sb18">SB18</option>
-            <option value="ks21">KS21</option>
-            <option value="ks28">KS28</option>
+            <option value="SB18">SB18</option>
+            <option value="KS21">KS21</option>
+            <option value="KS28">KS28</option>
         </select>
     </div>
 
     <div class="form-group">
         <label for="subMode">Režim Subwooferu:</label>
         <select id="subMode" onchange="findPreset()">
-            <option value="standard">Standard ([xx_60] / [xx_100])</option>
+            <option value="standard">Standard</option>
             <option value="c">Cardioid (C)</option>
             <option value="cx">Cardioid (Cx)</option>
         </select>
@@ -97,9 +127,22 @@
 
     <div id="resultBox" class="result-box">
         <h3>Pre-alignment Delay:</h3>
-        <p><strong>Top Delay:</strong> <span id="delayTopValue">-</span></p>
-        <p><strong>Sub Delay:</strong> <span id="delaySubValue">-</span></p>
-        <p><strong>Polarita (Top/Sub):</strong> <span id="polarityValue">-</span></p>
+        
+        <p id="topResult" class="speaker-row">
+            <span id="topName" class="speaker-name">-</span> ➔ 
+            <strong>Delay:</strong> <span id="topDelayValue">-</span> | 
+            <strong>Pol:</strong> <span id="topPolarityValue">-</span>
+        </p>
+
+        <p id="subResult" class="speaker-row">
+            <span id="subName" class="speaker-name">-</span> ➔ 
+            <strong>Delay:</strong> <span id="subDelayValue">-</span> | 
+            <strong>Pol:</strong> <span id="subPolarityValue">-</span>
+        </p>
+
+        <p id="noPresetMessage" class="kombinace-nenalezena" style="display:none;">
+            Kombinace není v manuálu.
+        </p>
     </div>
 
     <div class="footer">
@@ -108,56 +151,79 @@
 </div>
 
 <script>
-    /* Databáze presetů z manuálu v28.0. 
-       Poznámka: U Kara II bereme standardní presety s filtrem [xx_60].
-    */
     const presetDatabase = {
         // --- Kara II + SB18 ---
-        "kara2-sb18-standard": { topDelay: "2.5 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "kara2-sb18-c": { topDelay: "8 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "kara2-sb18-cx": { topDelay: "6.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "KARA II-SB18-standard": { topDelay: "2.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "KARA II-SB18-c": { topDelay: "8 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "KARA II-SB18-cx": { topDelay: "6.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
         
         // --- Kara II + KS21 ---
-        "kara2-ks21-standard": { topDelay: "0.5 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "kara2-ks21-c": { topDelay: "6 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "kara2-ks21-cx": { topDelay: "5.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "KARA II-KS21-standard": { topDelay: "0.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "KARA II-KS21-c": { topDelay: "6 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "KARA II-KS21-cx": { topDelay: "5.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
 
         // --- Kara II + KS28 ---
-        "kara2-ks28-standard": { topDelay: "0 ms", subDelay: "5 ms", polarity: "+ / +" },
-        "kara2-ks28-c": { topDelay: "0.5 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "kara2-ks28-cx": { topDelay: "4.5 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "KARA II-KS28-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "5 ms", subPolarity: "+" },
+        "KARA II-KS28-c": { topDelay: "0.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "KARA II-KS28-cx": { topDelay: "4.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
 
         // --- A15 + KS21 ---
-        "a15-ks21-standard": { topDelay: "0 ms", subDelay: "2.3 ms", polarity: "+ / +" },
-        "a15-ks21-c": { topDelay: "9 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "a15-ks21-cx": { topDelay: "8 ms", subDelay: "0 ms", polarity: "+ / +" },
+        "A15-KS21-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "2.3 ms", subPolarity: "+" },
+        "A15-KS21-c": { topDelay: "9 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "A15-KS21-cx": { topDelay: "8 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
 
         // --- A10 + KS21 ---
-        "a10-ks21-standard": { topDelay: "0 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "a10-ks21-c": { topDelay: "5.5 ms", subDelay: "0 ms", polarity: "+ / +" },
-        "a10-ks21-cx": { topDelay: "0 ms", subDelay: "0 ms", polarity: "+ / +" }
-        
-        // Ostatní kombinace (např. A15+SB18, A10+KS28) nejsou v manuálu předpočítány.
+        "A10-KS21-standard": { topDelay: "0 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "A10-KS21-c": { topDelay: "5.5 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" },
+        "A10-KS21-cx": { topDelay: "0 ms", topPolarity: "+", subDelay: "0 ms", subPolarity: "+" }
     };
 
     function findPreset() {
-        const top = document.getElementById('topSpeaker').value;
-        const sub = document.getElementById('subSpeaker').value;
+        const topSelect = document.getElementById('topSpeaker');
+        const subSelect = document.getElementById('subSpeaker');
         const mode = document.getElementById('subMode').value;
         const resultBox = document.getElementById('resultBox');
+        
+        const top = topSelect.value;
+        const sub = subSelect.value;
         
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
             const preset = presetDatabase[searchKey];
 
+            document.getElementById('noPresetMessage').style.display = 'none';
+            document.getElementById('topResult').style.display = 'block';
+            document.getElementById('subResult').style.display = 'block';
+
             if (preset) {
-                document.getElementById('delayTopValue').innerText = preset.topDelay;
-                document.getElementById('delaySubValue').innerText = preset.subDelay;
-                document.getElementById('polarityValue').innerText = preset.polarity;
+                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text;
+                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text;
+
+                const topPolEl = document.getElementById('topPolarityValue');
+                const subPolEl = document.getElementById('subPolarityValue');
+
+                document.getElementById('topDelayValue').innerText = preset.topDelay;
+                topPolEl.innerText = preset.topPolarity;
+                document.getElementById('subDelayValue').innerText = preset.subDelay;
+                subPolEl.innerText = preset.subPolarity;
+
+                // Logika pro červené zvýraznění záporné polarity
+                if (preset.topPolarity === "-") {
+                    topPolEl.classList.add('polarity-negative');
+                } else {
+                    topPolEl.classList.remove('polarity-negative');
+                }
+                
+                if (preset.subPolarity === "-") {
+                    subPolEl.classList.add('polarity-negative');
+                } else {
+                    subPolEl.classList.remove('polarity-negative');
+                }
+                
             } else {
-                document.getElementById('delayTopValue').innerText = "Nedefinováno v manuálu";
-                document.getElementById('delaySubValue').innerText = "Nedefinováno v manuálu";
-                document.getElementById('polarityValue').innerText = "-";
+                document.getElementById('topResult').style.display = 'none';
+                document.getElementById('subResult').style.display = 'none';
+                document.getElementById('noPresetMessage').style.display = 'block';
             }
             resultBox.style.display = 'block';
         } else {
