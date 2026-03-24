@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L-Acoustics Setup</title>
+    <title>L-Acoustics Setup & Calculator</title>
     <style>
         * { box-sizing: border-box; }
 
@@ -21,13 +21,13 @@
             background-color: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            max-width: 650px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            max-width: 700px;
             width: 100%;
         }
 
         h1 {
-            font-size: 1.7em;
+            font-size: 1.8em;
             text-align: center;
             color: #1a252f;
             margin-top: 0;
@@ -35,20 +35,18 @@
         }
         
         .section-title {
-            font-size: 1.1em;
+            font-size: 1.05em;
             color: #3498db;
             border-bottom: 2px solid #e8f4f8;
             padding-bottom: 5px;
-            margin-top: 25px;
+            margin-top: 30px;
             margin-bottom: 15px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .form-group { margin-bottom: 15px; }
 
         label {
             display: block;
@@ -64,23 +62,23 @@
             align-items: stretch; 
         }
         
-        select {
+        select, input[type="number"] {
             flex: 1; 
             min-width: 120px;
             height: 44px;
-            padding: 0 10px;
+            padding: 0 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            font-size: 0.95em;
+            font-size: 1em;
             background-color: #f8fafc;
             color: #2c3e50;
-            cursor: pointer;
             outline: none;
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: border-color 0.2s;
         }
         
-        select:focus { border-color: #3498db; background-color: #ffffff; }
-        select:disabled { background-color: #eef2f5; cursor: not-allowed; color: #95a5a6; }
+        select { cursor: pointer; }
+        select:focus, input[type="number"]:focus { border-color: #3498db; background-color: #ffffff; }
+        select:disabled, input:disabled { background-color: #eef2f5; cursor: not-allowed; color: #95a5a6; border-color: #e2e8f0; }
         
         .inline-result {
             display: none;
@@ -98,29 +96,38 @@
         .pol-minus { color: #e74c3c; font-weight: bold; font-size: 1.15em; }
         .pol-plus { font-weight: bold; font-size: 1.15em; color: #2c3e50; }
 
-        .error-message {
-            text-align: center;
-            color: #e74c3c;
-            background-color: #fdf2f2;
-            border: 1px solid #fadbd8;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 6px;
+        /* Vzhled finální kalkulačky */
+        .calc-wrapper {
             display: none;
-            margin-top: 10px;
+            background-color: #1a252f;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 0.8em;
-            text-align: center;
-            color: #95a5a6;
-        }
+        .calc-wrapper h3 { margin-top: 0; color: #3498db; margin-bottom: 15px; font-size: 1.2em; text-align: center;}
+        
+        .calc-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        .calc-table th { color: #95a5a6; font-weight: normal; text-align: right; padding-bottom: 10px; border-bottom: 1px solid #34495e;}
+        .calc-table th:first-child { text-align: left; }
+        .calc-table td { padding: 12px 0; border-bottom: 1px solid #2c3e50; text-align: right; }
+        .calc-table td:first-child { text-align: left; font-weight: bold; color: #ecf0f1; }
+        .calc-table tr:last-child td { border-bottom: none; }
+        
+        .val-preset { color: #bdc3c7; }
+        .val-geo { color: #f39c12; }
+        .val-final { color: #2ecc71; font-weight: bold; font-size: 1.15em; background-color: rgba(46, 204, 113, 0.1); padding: 4px 8px; border-radius: 4px; }
+        
+        .error-message { text-align: center; color: #e74c3c; background-color: #fdf2f2; border: 1px solid #fadbd8; font-weight: bold; padding: 12px; border-radius: 6px; display: none; margin-top: 10px; }
+        .footer { margin-top: 30px; font-size: 0.8em; text-align: center; color: #95a5a6; }
 
         @media (max-width: 550px) {
             .input-row { flex-wrap: wrap; }
-            select { flex: 1 1 100%; }
+            select, input[type="number"] { flex: 1 1 100%; }
             .inline-result { flex: 1 1 100%; margin-top: 5px; }
+            .calc-table th, .calc-table td { font-size: 0.85em; padding: 8px 2px; }
+            .val-final { font-size: 1em; }
         }
     </style>
 </head>
@@ -135,9 +142,7 @@
         <label>Top reprobedna:</label>
         <div class="input-row">
             <select id="topSpeaker" onchange="updateSub1()"></select>
-            <div id="topResult" class="inline-result">
-                Delay: &nbsp;<strong id="topDelay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="topPol">-</span>
-            </div>
+            <div id="topResult" class="inline-result">Pre-align: <strong id="topDelay">-</strong> | <span id="topPol">-</span></div>
         </div>
     </div>
 
@@ -145,9 +150,7 @@
         <label>Subwoofer 1:</label>
         <div class="input-row">
             <select id="sub1Speaker" onchange="updateSub2()" disabled></select>
-            <div id="sub1Result" class="inline-result">
-                Delay: &nbsp;<strong id="sub1Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub1Pol">-</span>
-            </div>
+            <div id="sub1Result" class="inline-result">Pre-align: <strong id="sub1Delay">-</strong> | <span id="sub1Pol">-</span></div>
         </div>
     </div>
 
@@ -155,13 +158,11 @@
         <label>Subwoofer 2:</label>
         <div class="input-row">
             <select id="sub2Speaker" onchange="updateSub1Mode()" disabled></select>
-            <div id="sub2Result" class="inline-result">
-                Delay: &nbsp;<strong id="sub2Delay">-</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Pol: &nbsp;<span id="sub2Pol">-</span>
-            </div>
+            <div id="sub2Result" class="inline-result">Pre-align: <strong id="sub2Delay">-</strong> | <span id="sub2Pol">-</span></div>
         </div>
     </div>
 
-    <div class="section-title">2. Nastavení režimů (Preset)</div>
+    <div class="section-title">2. Nastavení presetů</div>
 
     <div class="form-group">
         <label>Režim Subwooferu 1:</label>
@@ -173,14 +174,76 @@
         <select id="sub2Mode" onchange="showResults()" disabled style="width: 100%;"></select>
     </div>
 
-    <div id="errorMessage" class="error-message">
-        Tato kombinace není v manuálu definována.
+    <div id="errorMessage" class="error-message">Tato kombinace není v manuálu definována.</div>
+
+    <div id="measurementSection" style="display: none;">
+        <div class="section-title">3. Fyzické měření (Volitelné)</div>
+        
+        <div class="input-row" style="margin-bottom: 15px;">
+            <div style="flex:1;">
+                <label>Teplota vzduchu (°C):</label>
+                <input type="number" id="temp" value="20" oninput="calculateTotal()" step="0.5">
+            </div>
+            <div style="flex:1;">
+                <label>Vzdálenost Top (m):</label>
+                <input type="number" id="distTop" placeholder="např. 15.2" oninput="calculateTotal()" step="0.01">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div style="flex:1;">
+                <label>Vzdálenost Sub 1 (m):</label>
+                <input type="number" id="distSub1" placeholder="např. 14.5" oninput="calculateTotal()" step="0.01">
+            </div>
+            <div style="flex:1;" id="distSub2Group">
+                <label>Vzdálenost Sub 2 (m):</label>
+                <input type="number" id="distSub2" placeholder="např. 14.5" oninput="calculateTotal()" step="0.01">
+            </div>
+        </div>
+    </div>
+
+    <div id="calcWrapper" class="calc-wrapper">
+        <h3>Finální hodnoty pro LA Network Manager</h3>
+        <table class="calc-table">
+            <thead>
+                <tr>
+                    <th>Zdroj</th>
+                    <th>Preset</th>
+                    <th>Geometrie</th>
+                    <th>Celkem (Delay)</th>
+                    <th>Polarita</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="calcRowTop">
+                    <td id="calcNameTop">Top</td>
+                    <td class="val-preset" id="calcPresetTop">0.0 ms</td>
+                    <td class="val-geo" id="calcGeoTop">+ 0.0 ms</td>
+                    <td class="val-final" id="calcFinalTop">0.0 ms</td>
+                    <td id="calcPolTop" style="font-size:1.3em;">+</td>
+                </tr>
+                <tr id="calcRowSub1">
+                    <td id="calcNameSub1">Sub 1</td>
+                    <td class="val-preset" id="calcPresetSub1">0.0 ms</td>
+                    <td class="val-geo" id="calcGeoSub1">+ 0.0 ms</td>
+                    <td class="val-final" id="calcFinalSub1">0.0 ms</td>
+                    <td id="calcPolSub1" style="font-size:1.3em;">+</td>
+                </tr>
+                <tr id="calcRowSub2">
+                    <td id="calcNameSub2">Sub 2</td>
+                    <td class="val-preset" id="calcPresetSub2">0.0 ms</td>
+                    <td class="val-geo" id="calcGeoSub2">+ 0.0 ms</td>
+                    <td class="val-final" id="calcFinalSub2">0.0 ms</td>
+                    <td id="calcPolSub2" style="font-size:1.3em;">+</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=13"></script>
+<script src="data.js?v=14"></script>
 
 <script>
     const labels = {
@@ -188,7 +251,7 @@
         "sb18": "SB18", "ks21": "KS21", "ks28": "KS28", "sb28": "SB28",
         "none": "-- Bez 2. subu --",
         "60": "[60] Standard", "100": "[100] Standard",
-        "60_c": "[60_C] Cardioid", "100_c": "[100_C] Cardioid",
+        "60_c": "[60_C] Cardioid C", "100_c": "[100_C] Cardioid C",
         "60_cx": "[60_Cx] Cardioid Cx", "100_cx": "[100_Cx] Cardioid Cx"
     };
 
@@ -198,17 +261,13 @@
 
     function val(id) { return document.getElementById(id).value; }
 
-    // CHYTRÁ FUNKCE: Filtruje možnosti v datech podle přesně definovaných podmínek
     function getAvailable(targetIndex, conditions) {
         const options = new Set();
         Object.keys(presetDatabase).forEach(key => {
             const parts = key.split('-');
             let match = true;
             for (const idx in conditions) {
-                if (conditions[idx] && parts[idx] !== conditions[idx]) {
-                    match = false;
-                    break;
-                }
+                if (conditions[idx] && parts[idx] !== conditions[idx]) { match = false; break; }
             }
             if (match) options.add(parts[targetIndex]);
         });
@@ -219,17 +278,12 @@
         const select = document.getElementById(id);
         select.innerHTML = '<option value="">-- Vyber --</option>';
         select.disabled = optionsArray.length === 0;
-
         optionsArray.forEach(val => {
             const option = document.createElement('option');
-            option.value = val;
-            option.text = labels[val] || val;
-            select.appendChild(option);
+            option.value = val; option.text = labels[val] || val; select.appendChild(option);
         });
-
         if(optionsArray.length === 1) {
-            select.value = optionsArray[0];
-            select.dispatchEvent(new Event('change')); 
+            select.value = optionsArray[0]; select.dispatchEvent(new Event('change')); 
         }
     }
 
@@ -238,84 +292,117 @@
         document.getElementById('sub1Result').style.display = 'none';
         document.getElementById('sub2Result').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('measurementSection').style.display = 'none';
+        document.getElementById('calcWrapper').style.display = 'none';
     }
 
-    // --- KROK 1: Po výběru TOPu nabídni SUB 1 ---
-    function updateSub1() {
-        hideResults();
-        if(!val('topSpeaker')) {
-            ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
-        }
-        populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')}));
-    }
-
-    // --- KROK 2: Po výběru SUB 1 nabídni SUB 2 (ignoruje režimy) ---
-    function updateSub2() {
-        hideResults();
-        if(!val('sub1Speaker')) {
-            ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
-        }
-        // Vytahujeme index 3 (Sub 2) na základě indexu 0 (Top) a 1 (Sub 1)
-        populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')}));
-    }
-
-    // --- KROK 3: Po výběru SUB 2 nabídni REŽIM 1 ---
-    function updateSub1Mode() {
-        hideResults();
-        if(!val('sub2Speaker')) {
-            ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return;
-        }
-        
-        // Estetika: Pokud není Sub 2, schováme pro něj roletku režimu
-        if(val('sub2Speaker') === 'none') {
-            document.getElementById('sub2ModeGroup').style.display = 'none';
-        } else {
-            document.getElementById('sub2ModeGroup').style.display = 'block';
-        }
-
-        // Vytahujeme index 2 (Režim 1) na základě Topu, Subu 1 a Subu 2
-        populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')}));
-    }
-
-    // --- KROK 4: Po výběru REŽIMU 1 nabídni REŽIM 2 ---
-    function updateSub2Mode() {
-        hideResults();
-        if(!val('sub1Mode')) {
-            populateDropdown('sub2Mode', []); return;
-        }
-        // Vytahujeme index 4 (Režim 2)
-        populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')}));
-    }
+    function updateSub1() { hideResults(); if(!val('topSpeaker')) { ['sub1Speaker', 'sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub1Speaker', getAvailable(1, {0: val('topSpeaker')})); }
+    function updateSub2() { hideResults(); if(!val('sub1Speaker')) { ['sub2Speaker', 'sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } populateDropdown('sub2Speaker', getAvailable(3, {0: val('topSpeaker'), 1: val('sub1Speaker')})); }
+    function updateSub1Mode() { hideResults(); if(!val('sub2Speaker')) { ['sub1Mode', 'sub2Mode'].forEach(id => populateDropdown(id, [])); return; } document.getElementById('sub2ModeGroup').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; document.getElementById('distSub2Group').style.display = (val('sub2Speaker') === 'none') ? 'none' : 'block'; populateDropdown('sub1Mode', getAvailable(2, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker')})); }
+    function updateSub2Mode() { hideResults(); if(!val('sub1Mode')) { populateDropdown('sub2Mode', []); return; } populateDropdown('sub2Mode', getAvailable(4, {0: val('topSpeaker'), 1: val('sub1Speaker'), 3: val('sub2Speaker'), 2: val('sub1Mode')})); }
 
     function applyPolarity(elementId, value) {
         const el = document.getElementById(elementId);
-        el.innerText = value;
-        el.className = (value === "-") ? "pol-minus" : "pol-plus";
+        el.innerText = value; el.className = (value === "-") ? "pol-minus" : "pol-plus";
     }
 
-    // --- KROK 5: Ukaž výsledky ---
+    // Uložené presety pro kalkulaci
+    let currentPresetData = null;
+
     function showResults() {
         const key = `${val('topSpeaker')}-${val('sub1Speaker')}-${val('sub1Mode')}-${val('sub2Speaker')}-${val('sub2Mode')}`;
         
         if (val('topSpeaker') && val('sub1Speaker') && val('sub1Mode') && val('sub2Speaker') && val('sub2Mode')) {
             const preset = presetDatabase[key];
             if (preset) {
-                document.getElementById('topDelay').innerText = preset.topDelay;
-                applyPolarity('topPol', preset.topPol);
-                document.getElementById('topResult').style.display = 'flex';
-
-                document.getElementById('sub1Delay').innerText = preset.sub1Delay;
-                applyPolarity('sub1Pol', preset.sub1Pol);
-                document.getElementById('sub1Result').style.display = 'flex';
+                currentPresetData = preset;
+                document.getElementById('topDelay').innerText = preset.topDelay; applyPolarity('topPol', preset.topPol); document.getElementById('topResult').style.display = 'flex';
+                document.getElementById('sub1Delay').innerText = preset.sub1Delay; applyPolarity('sub1Pol', preset.sub1Pol); document.getElementById('sub1Result').style.display = 'flex';
 
                 if (val('sub2Speaker') !== 'none') {
-                    document.getElementById('sub2Delay').innerText = preset.sub2Delay;
-                    applyPolarity('sub2Pol', preset.sub2Pol);
-                    document.getElementById('sub2Result').style.display = 'flex';
+                    document.getElementById('sub2Delay').innerText = preset.sub2Delay; applyPolarity('sub2Pol', preset.sub2Pol); document.getElementById('sub2Result').style.display = 'flex';
                 }
+                
+                document.getElementById('measurementSection').style.display = 'block';
+                document.getElementById('calcWrapper').style.display = 'block';
+                calculateTotal(); // Provede výpočet okamžitě
             } else {
                 document.getElementById('errorMessage').style.display = 'block';
             }
+        }
+    }
+
+    // HLAVNÍ VÝPOČETNÍ JÁDRO
+    function calculateTotal() {
+        if (!currentPresetData) return;
+
+        // Jména do tabulky
+        document.getElementById('calcNameTop').innerText = labels[val('topSpeaker')];
+        document.getElementById('calcNameSub1').innerText = labels[val('sub1Speaker')];
+        
+        const hasSub2 = val('sub2Speaker') !== 'none';
+        document.getElementById('calcRowSub2').style.display = hasSub2 ? 'table-row' : 'none';
+        if(hasSub2) document.getElementById('calcNameSub2').innerText = labels[val('sub2Speaker')];
+
+        // Rychlost zvuku (m/s) závislá na teplotě: c = 331.3 + (0.606 * T)
+        const temp = parseFloat(val('temp')) || 20;
+        const c = 331.3 + (0.606 * temp);
+
+        // Fyzické vzdálenosti
+        const dTopStr = val('distTop');
+        const dSub1Str = val('distSub1');
+        const dSub2Str = val('distSub2');
+
+        const dTop = dTopStr !== "" ? parseFloat(dTopStr) : null;
+        const dSub1 = dSub1Str !== "" ? parseFloat(dSub1Str) : null;
+        const dSub2 = dSub2Str !== "" ? parseFloat(dSub2Str) : null;
+
+        // Geometrické zpoždění (ms)
+        let gTop = 0, gSub1 = 0, gSub2 = 0;
+
+        // Pokud uživatel zadal relevantní vzdálenosti
+        let canCalc = (dTop !== null && dSub1 !== null);
+        if(hasSub2 && dSub2 === null) canCalc = false;
+
+        if (canCalc) {
+            // Najdeme nejvzdálenější bednu
+            let maxD = Math.max(dTop, dSub1);
+            if(hasSub2) maxD = Math.max(maxD, dSub2);
+
+            // Bližší bedny se musí zpozdit o čas, který zvuku trvá uletět chybějící vzdálenost
+            gTop = ((maxD - dTop) / c) * 1000;
+            gSub1 = ((maxD - dSub1) / c) * 1000;
+            if(hasSub2) gSub2 = ((maxD - dSub2) / c) * 1000;
+        }
+
+        // Extrakce zpoždění z databáze (z textu "2.5 ms" udělá číslo 2.5)
+        const pTop = parseFloat(currentPresetData.topDelay) || 0;
+        const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
+        const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
+
+        // Finální součty
+        const fTop = pTop + gTop;
+        const fSub1 = pSub1 + gSub1;
+        const fSub2 = pSub2 + gSub2;
+
+        // Zápis do UI (Top)
+        document.getElementById('calcPresetTop').innerText = pTop.toFixed(1) + " ms";
+        document.getElementById('calcGeoTop').innerText = "+" + gTop.toFixed(1) + " ms";
+        document.getElementById('calcFinalTop').innerText = fTop.toFixed(1) + " ms";
+        applyPolarity('calcPolTop', currentPresetData.topPol);
+
+        // Zápis do UI (Sub 1)
+        document.getElementById('calcPresetSub1').innerText = pSub1.toFixed(1) + " ms";
+        document.getElementById('calcGeoSub1').innerText = "+" + gSub1.toFixed(1) + " ms";
+        document.getElementById('calcFinalSub1').innerText = fSub1.toFixed(1) + " ms";
+        applyPolarity('calcPolSub1', currentPresetData.sub1Pol);
+
+        // Zápis do UI (Sub 2)
+        if(hasSub2) {
+            document.getElementById('calcPresetSub2').innerText = pSub2.toFixed(1) + " ms";
+            document.getElementById('calcGeoSub2').innerText = "+" + gSub2.toFixed(1) + " ms";
+            document.getElementById('calcFinalSub2').innerText = fSub2.toFixed(1) + " ms";
+            applyPolarity('calcPolSub2', currentPresetData.sub2Pol);
         }
     }
 </script>
