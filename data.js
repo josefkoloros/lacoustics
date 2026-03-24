@@ -1,88 +1,55 @@
 // data.js - Databáze zpoždění a polarity (L-Acoustics Preset Guide v28.0)
-// Formát klíče: "top-sub1-sub2-režim"
+// Formát: "top - sub1 - rezim1 - sub2 - rezim2" (pokud není 2. sub, použije se "none")
+// PROSÍM ZKONTROLUJ ZNAMÉNKA POLARITY PODLE BAREVNÉHO MANUÁLU!
 
 const presetDatabase = {
     // ==========================================
-    // KARA II
+    // 1 SUBWOOFER (KARA II)
     // ==========================================
     // Kara II + SB18
-    "kara2-sb18-none-60": { topDelay: "2.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "kara2-sb18-none-60_c": { topDelay: "8.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-sb18-none-60_cx": { topDelay: "6.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-sb18-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "kara2-sb18-none-100_c": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-sb18-none-100_cx": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-sb18-60-none-none": { topDelay: "2.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
+    "kara2-sb18-60_c-none-none": { topDelay: "8.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-sb18-60_cx-none-none": { topDelay: "6.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-sb18-100-none-none": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
+    "kara2-sb18-100_c-none-none": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-sb18-100_cx-none-none": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
     
     // Kara II + KS21
-    "kara2-ks21-none-60": { topDelay: "0.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "kara2-ks21-none-60_c": { topDelay: "6.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks21-none-60_cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks21-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+" },
-    "kara2-ks21-none-100_c": { topDelay: "5.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks21-none-100_cx": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks21-60-none-none": { topDelay: "0.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
+    "kara2-ks21-60_c-none-none": { topDelay: "6.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks21-60_cx-none-none": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks21-100-none-none": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+" },
+    "kara2-ks21-100_c-none-none": { topDelay: "5.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks21-100_cx-none-none": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
 
-    // Kara II + KS28 (TOTO CHYBĚLO!)
-    "kara2-ks28-none-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "5.0 ms", sub1Pol: "+" },
-    "kara2-ks28-none-60_c": { topDelay: "0.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks28-none-60_cx": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks28-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "1.0 ms", sub1Pol: "+" },
-    "kara2-ks28-none-100_c": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "kara2-ks28-none-100_cx": { topDelay: "7.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-
-    // ==========================================
-    // A15 & A10
-    // ==========================================
-    // A15 + KS21 (pouze 60Hz)
-    "a15-ks21-none-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "2.3 ms", sub1Pol: "+" },
-    "a15-ks21-none-60_c": { topDelay: "9.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "a15-ks21-none-60_cx": { topDelay: "8.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-
-    // A10 + KS21 (pouze 100Hz)
-    "a10-ks21-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "a10-ks21-none-100_c": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "a10-ks21-none-100_cx": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    // Kara II + KS28
+    "kara2-ks28-60-none-none": { topDelay: "0 ms", topPol: "+", sub1Delay: "5.0 ms", sub1Pol: "+" },
+    "kara2-ks28-60_c-none-none": { topDelay: "0.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-60_cx-none-none": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-100-none-none": { topDelay: "0 ms", topPol: "+", sub1Delay: "1.0 ms", sub1Pol: "+" },
+    "kara2-ks28-100_c-none-none": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-100_cx-none-none": { topDelay: "7.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
 
     // ==========================================
-    // X12
+    // 2 SUBWOOFERY (KARA II)
     // ==========================================
-    // X12 + SB18 (pouze 100Hz)
-    "x12-sb18-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "x12-sb18-none-100_c": { topDelay: "5.7 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "x12-sb18-none-100_cx": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    // Kara II + KS21 + SB28 (OPRAVENO PODLE TVÉHO SCREENSHOTU)
+    "kara2-ks21-100-sb28-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "-" },
+    "kara2-ks21-100-sb28-60_c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
+    "kara2-ks21-100-sb28-60_cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "6.0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "+" },
 
-    // X12 + KS21 (pouze 100Hz)
-    "x12-ks21-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "1.0 ms", sub1Pol: "+" },
-    "x12-ks21-none-100_c": { topDelay: "4.8 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "x12-ks21-none-100_cx": { topDelay: "3.4 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    // Kara II + SB18 + SB28 (TADY ZKONTROLUJ ZNAMÉNKA V MANUÁLU)
+    "kara2-sb18-100-sb28-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "+" },
+    "kara2-sb18-100-sb28-60_c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
+    "kara2-sb18-100-sb28-60_cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "5.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
 
-    // ==========================================
-    // ARCS RODINA
-    // ==========================================
-    // ARCS Wide/Focus + SB18 (pouze 60Hz)
-    "arcs_wifo-sb18-none-60": { topDelay: "1.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "arcs_wifo-sb18-none-60_c": { topDelay: "7.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "arcs_wifo-sb18-none-60_cx": { topDelay: "6.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    // Kara II + SB18 + KS28 (TADY ZKONTROLUJ ZNAMÉNKA V MANUÁLU)
+    "kara2-sb18-100-ks28-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "+" },
+    "kara2-sb18-100-ks28-60_c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
+    "kara2-sb18-100-ks28-60_cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "5.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
 
-    // ARCS II + KS28 (pouze 60Hz)
-    "arcs2-ks28-none-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "2.0 ms", sub1Pol: "+" },
-    "arcs2-ks28-none-60_c": { topDelay: "3.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "arcs2-ks28-none-60_cx": { topDelay: "7.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-
-    // ARCS (Legacy) + SB18
-    "arcs-sb18-none-60": { topDelay: "0.4 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "arcs-sb18-none-60_c": { topDelay: "5.9 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "arcs-sb18-none-100": { topDelay: "1.1 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+" },
-    "arcs-sb18-none-100_c": { topDelay: "6.6 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-
-    // ARCS (Legacy) + KS28
-    "arcs-ks28-none-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.6 ms", sub1Pol: "+" },
-    "arcs-ks28-none-60_c": { topDelay: "4.9 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-    "arcs-ks28-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+" },
-    "arcs-ks28-none-100_c": { topDelay: "5.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
-
-
-    // ==========================================
-    // 2 SUBWOOFERY
-    // ==========================================
-    // Kara II + SB18 + SB28
-    "kara2-sb18-sb28-standard
+    // Kara II + KS21 + KS28 (TADY ZKONTROLUJ ZNAMÉNKA V MANUÁLU)
+    "kara2-ks21-100-ks28-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "+" },
+    "kara2-ks21-100-ks28-60_c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
+    "kara2-ks21-100-ks28-60_cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "6.0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" }
+};
