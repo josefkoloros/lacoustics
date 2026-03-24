@@ -8,15 +8,21 @@
     <style>
         * { box-sizing: border-box; }
 
-        html, body { margin: 0; padding: 0; height: 100%; }
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            /* PŘIDÁNO: Tmavé pozadí okolo aplikace */
+            background-color: #121212; /* Můžeš přepsat na #000000 pro absolutní černou */
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
             color: #2c3e50;
             display: block; 
             overflow-y: auto; 
             padding: 20px;
+            /* SMAZÁNO: Původní světlé background-color: #f4f6f8; */
         }
 
         .container {
