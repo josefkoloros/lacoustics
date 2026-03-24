@@ -21,6 +21,14 @@ const presetDatabase = {
     "kara2-ks21-none-100_c": { topDelay: "5.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
     "kara2-ks21-none-100_cx": { topDelay: "4.0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
 
+    // Kara II + KS28 (TOTO CHYBĚLO!)
+    "kara2-ks28-none-60": { topDelay: "0 ms", topPol: "+", sub1Delay: "5.0 ms", sub1Pol: "+" },
+    "kara2-ks28-none-60_c": { topDelay: "0.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-none-60_cx": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-none-100": { topDelay: "0 ms", topPol: "+", sub1Delay: "1.0 ms", sub1Pol: "+" },
+    "kara2-ks28-none-100_c": { topDelay: "4.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+    "kara2-ks28-none-100_cx": { topDelay: "7.5 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "-" },
+
     // ==========================================
     // A15 & A10
     // ==========================================
@@ -74,15 +82,7 @@ const presetDatabase = {
 
 
     // ==========================================
-    // 2 SUBWOOFERY (Pro jistotu tu nechávám Kara 2)
+    // 2 SUBWOOFERY
     // ==========================================
     // Kara II + SB18 + SB28
-    "kara2-sb18-sb28-standard": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "+" },
-    "kara2-sb18-sb28-c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
-    "kara2-sb18-sb28-cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "5.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
-
-    // Kara II + KS21 + KS28
-    "kara2-ks21-ks28-standard": { topDelay: "0 ms", topPol: "+", sub1Delay: "0 ms", sub1Pol: "+", sub2Delay: "5.5 ms", sub2Pol: "+" },
-    "kara2-ks21-ks28-c": { topDelay: "0 ms", topPol: "+", sub1Delay: "0.5 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" },
-    "kara2-ks21-ks28-cx": { topDelay: "5.5 ms", topPol: "+", sub1Delay: "6.0 ms", sub1Pol: "+", sub2Delay: "0 ms", sub2Pol: "-" }
-};
+    "kara2-sb18-sb28-standard
