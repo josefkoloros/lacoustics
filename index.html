@@ -295,7 +295,7 @@
     <div class="footer">Zdroj dat: Preset Guide v28.0</div>
 </div>
 
-<script src="data.js?v=19"></script>
+<script src="data.js?v=20"></script>
 
 <script>
     const labels = {
@@ -355,11 +355,10 @@
         el.innerText = value; el.className = (value === "-") ? "pol-minus" : "pol-plus";
     }
 
-    // --- NOVÁ FYZIKA FÁZE ---
     function getFreqOffset(modeStr) {
         if (!modeStr) return 0;
-        if (modeStr.includes("60")) return 1000 / (2 * 60); // 8.333 ms
-        if (modeStr.includes("100")) return 1000 / (2 * 100); // 5.0 ms
+        if (modeStr.includes("60")) return 1000 / (2 * 60);
+        if (modeStr.includes("100")) return 1000 / (2 * 100);
         return 0;
     }
 
@@ -379,7 +378,6 @@
                     document.getElementById('sub2Delay').innerText = preset.sub2Delay; applyPolarity('sub2Pol', preset.sub2Pol); document.getElementById('sub2Result').style.display = 'flex';
                 }
                 
-                // Vždy vyresetujeme zatržítka při změně hardwaru/presetu
                 document.getElementById('invTop').checked = false;
                 document.getElementById('invSub1').checked = false;
                 document.getElementById('invSub2').checked = false;
@@ -473,43 +471,51 @@
         const pSub1 = parseFloat(currentPresetData.sub1Delay) || 0;
         const pSub2 = parseFloat(currentPresetData.sub2Delay) || 0;
 
-        // --- ZÁPIS DO UI VČETNĚ PŘEPOČTU FÁZE NA MS ---
-        const writeUI = (row, preset, geo, modeStr, isInverted, basePol) => {
-            let baseTotal = preset + geo;
-            let finalPol = basePol;
-            let finalTotal = baseTotal;
-            let offsetText = "";
-
-            if (isInverted) {
-                finalPol = basePol === '+' ? '-' : '+';
-                let offsetMs = getFreqOffset(modeStr);
-                
-                if (offsetMs > 0) {
-                    // Systémová optimalizace: držíme delay kladný, ale co nejnižší
-                    if (baseTotal >= offsetMs) {
-                        finalTotal = baseTotal - offsetMs;
-                        offsetText = ` <span class="phase-offset">(-${offsetMs.toFixed(1)})</span>`;
-                    } else {
-                        finalTotal = baseTotal + offsetMs;
-                        offsetText = ` <span class="phase-offset">(+${offsetMs.toFixed(1)})</span>`;
-                    }
-                }
-            }
-
-            document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
-            document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
-            document.getElementById(`calcFinal${row}`).innerHTML = finalTotal.toFixed(1) + " ms" + offsetText;
-            applyPolarity(`calcPol${row}`, finalPol);
-        };
-
         const invTop = document.getElementById('invTop').checked;
         const invSub1 = document.getElementById('invSub1').checked;
         const invSub2 = hasSub2 ? document.getElementById('invSub2').checked : false;
 
-        // Pro Top bednu se díváme na dělící frekvenci Subu 1 (protože Top se řídí podle něj)
-        writeUI('Top', pTop, gTop, val('sub1Mode'), invTop, currentPresetData.topPol);
-        writeUI('Sub1', pSub1, gSub1, val('sub1Mode'), invSub1, currentPresetData.sub1Pol);
-        if(hasSub2) writeUI('Sub2', pSub2, gSub2, val('sub2Mode'), invSub2, currentPresetData.sub2Pol);
+        // Pomocná funkce pro výpočet hrubého delaye před normalizací (odečtem do nuly)
+        const getRawFinal = (preset, geo, modeStr, isInverted) => {
+            let baseTotal = preset + geo;
+            if (!isInverted) return { val: baseTotal, text: "" };
+            
+            let offsetMs = getFreqOffset(modeStr);
+            if (offsetMs > 0) {
+                if (baseTotal >= offsetMs) {
+                    return { val: baseTotal - offsetMs, text: ` <span class="phase-offset">(-${offsetMs.toFixed(1)})</span>` };
+                } else {
+                    return { val: baseTotal + offsetMs, text: ` <span class="phase-offset">(+${offsetMs.toFixed(1)})</span>` };
+                }
+            }
+            return { val: baseTotal, text: "" };
+        };
+
+        const rawTop = getRawFinal(pTop, gTop, val('sub1Mode'), invTop);
+        const rawSub1 = getRawFinal(pSub1, gSub1, val('sub1Mode'), invSub1);
+        const rawSub2 = hasSub2 ? getRawFinal(pSub2, gSub2, val('sub2Mode'), invSub2) : { val: Infinity, text: "" };
+
+        // --- NORMALIZACE (Stržení na nulu) ---
+        let minDelay = Math.min(rawTop.val, rawSub1.val);
+        if (hasSub2) minDelay = Math.min(minDelay, rawSub2.val);
+
+        const normTop = rawTop.val - minDelay;
+        const normSub1 = rawSub1.val - minDelay;
+        const normSub2 = hasSub2 ? rawSub2.val - minDelay : 0;
+
+        const writeUI = (row, preset, geo, normalizedFinal, offsetText, isInverted, basePol) => {
+            let finalPol = basePol;
+            if (isInverted) finalPol = basePol === '+' ? '-' : '+';
+
+            document.getElementById(`calcPreset${row}`).innerText = preset.toFixed(1) + " ms";
+            document.getElementById(`calcGeo${row}`).innerText = "+" + geo.toFixed(1) + " ms";
+            document.getElementById(`calcFinal${row}`).innerHTML = normalizedFinal.toFixed(1) + " ms" + offsetText;
+            applyPolarity(`calcPol${row}`, finalPol);
+        };
+
+        writeUI('Top', pTop, gTop, normTop, rawTop.text, invTop, currentPresetData.topPol);
+        writeUI('Sub1', pSub1, gSub1, normSub1, rawSub1.text, invSub1, currentPresetData.sub1Pol);
+        if(hasSub2) writeUI('Sub2', pSub2, gSub2, normSub2, rawSub2.text, invSub2, currentPresetData.sub2Pol);
     }
 </script>
 
