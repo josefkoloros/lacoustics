@@ -15,7 +15,7 @@
         }
         .container {
             background-color: #fff;
-            padding: 20px 30px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             max-width: 450px;
@@ -44,7 +44,6 @@
             background-color: #fff;
         }
         
-        /* Box s výsledky */
         .result-box {
             margin-top: 20px;
             padding: 15px;
@@ -61,27 +60,29 @@
             padding-bottom: 8px;
         }
         
-        /* Změněné rozvržení - vše plynule vedle sebe */
+        /* Úprava pro text striktně v jednom řádku */
         .speaker-row {
-            padding: 8px 0;
-            border-bottom: 1px dashed #bce8f1;
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 10px;
             font-size: 1.05em;
-        }
-        .speaker-row:last-child {
-            border-bottom: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .spk-name {
             font-weight: bold;
             color: #2c3e50;
-            margin-right: 5px;
-        }
-        .spk-data {
-            color: #34495e;
+            text-transform: uppercase;
         }
         
         /* Zvýraznění záporné polarity */
         .pol-minus {
             color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .pol-plus {
             font-weight: bold;
             font-size: 1.1em;
         }
@@ -138,14 +139,16 @@
     <div id="resultBox" class="result-box">
         <h3>Pre-alignment Delay:</h3>
         
-        <div class="speaker-row">
-            <span id="topName" class="spk-name">Top:</span>
-            <span class="spk-data">Delay: <strong id="topDelay">-</strong> | Pol: <span id="topPol">-</span></span>
+        <div id="topResult" class="speaker-row">
+            <span id="topName" class="spk-name">-</span> &nbsp;&bull;&nbsp; 
+            Delay: <strong id="topDelay">-</strong> &nbsp;&bull;&nbsp; 
+            Polarita: <span id="topPol">-</span>
         </div>
 
-        <div class="speaker-row">
-            <span id="subName" class="spk-name">Sub:</span>
-            <span class="spk-data">Delay: <strong id="subDelay">-</strong> | Pol: <span id="subPol">-</span></span>
+        <div id="subResult" class="speaker-row">
+            <span id="subName" class="spk-name">-</span> &nbsp;&bull;&nbsp; 
+            Delay: <strong id="subDelay">-</strong> &nbsp;&bull;&nbsp; 
+            Polarita: <span id="subPol">-</span>
         </div>
     </div>
 
@@ -158,7 +161,7 @@
     </div>
 </div>
 
-<script src="data.js?v=1"></script>
+<script src="data.js?v=2"></script>
 
 <script>
     function findPreset() {
@@ -175,13 +178,13 @@
         if (top && sub) {
             const searchKey = top + "-" + sub + "-" + mode;
             
-            // data se čtou z objektu presetDatabase (ze souboru data.js)
+            // data se čtou z objektu presetDatabase ze souboru data.js
             const preset = presetDatabase[searchKey];
 
             if (preset) {
                 // Vyplnění názvů
-                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text + ":";
-                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text + ":";
+                document.getElementById('topName').innerText = topSelect.options[topSelect.selectedIndex].text;
+                document.getElementById('subName').innerText = subSelect.options[subSelect.selectedIndex].text;
 
                 // Vyplnění Delay
                 document.getElementById('topDelay').innerText = preset.topDelay;
@@ -193,7 +196,7 @@
                 if (preset.topPol === "-") {
                     topPolEl.className = "pol-minus";
                 } else {
-                    topPolEl.className = "";
+                    topPolEl.className = "pol-plus";
                 }
 
                 // Zpracování polarity (Sub)
@@ -202,12 +205,16 @@
                 if (preset.subPol === "-") {
                     subPolEl.className = "pol-minus";
                 } else {
-                    subPolEl.className = "";
+                    subPolEl.className = "pol-plus";
                 }
 
                 errorMessage.style.display = 'none';
+                document.getElementById('topResult').style.display = 'block';
+                document.getElementById('subResult').style.display = 'block';
                 resultBox.style.display = 'block';
             } else {
+                document.getElementById('topResult').style.display = 'none';
+                document.getElementById('subResult').style.display = 'none';
                 resultBox.style.display = 'none';
                 errorMessage.style.display = 'block';
             }
